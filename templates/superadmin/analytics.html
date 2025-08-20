@@ -1,0 +1,189 @@
+{% extends "superadmin/base.html" %}
+
+{% block title %}Analytics - Super Admin{% endblock %}
+
+{% block content %}
+<section class="min-h-screen p-4 sm:p-6 md:p-8">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+        <div>
+            <h1 class="text-3xl font-bold text-slate-100">Platform Analytics</h1>
+            <p class="text-slate-400 mt-1">Key metrics for the last {{ days }} days.</p>
+        </div>
+        <div class="bg-slate-800/80 p-2 rounded-xl border border-slate-700">
+            <form method="GET" class="flex items-center gap-2">
+                <select name="days" id="days" class="bg-slate-700/50 border-0 rounded-md text-white text-sm focus:ring-2 focus:ring-blue-500 p-2" onchange="this.form.submit()">
+                    <option value="7" {% if days == 7 %}selected{% endif %}>Last 7 days</option>
+                    <option value="30" {% if days == 30 %}selected{% endif %}>Last 30 days</option>
+                    <option value="90" {% if days == 90 %}selected{% endif %}>Last 90 days</option>
+                    <option value="365" {% if days == 365 %}selected{% endif %}>Last 365 days</option>
+                </select>
+                <button type="submit" class="px-3 py-2 bg-blue-600 text-white text-sm font-semibold rounded-md hover:bg-blue-700 transition">Update</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+        <div class="lg:col-span-2 bg-slate-800/80 p-6 rounded-xl border border-slate-700">
+            <h3 class="text-lg font-semibold text-slate-100 mb-4">Platform Revenue</h3>
+            <div class="h-80"><canvas id="revenueChart"></canvas></div>
+        </div>
+        <div class="bg-slate-800/80 p-6 rounded-xl border border-slate-700">
+            <h3 class="text-lg font-semibold text-slate-100 mb-4">Summary</h3>
+            <div class="space-y-4 text-center">
+                <div class="p-4 bg-slate-700/50 rounded-lg">
+                    <p class="text-sm text-slate-400">Total Revenue</p>
+                    <p class="text-2xl font-bold text-green-400" id="total-revenue-chart">$0</p>
+                </div>
+                <div class="p-4 bg-slate-700/50 rounded-lg">
+                    <p class="text-sm text-slate-400">Avg. Order Value</p>
+                    <p class="text-2xl font-bold text-slate-100" id="avg-order-value">$0</p>
+                </div>
+                <div class="p-4 bg-slate-700/50 rounded-lg">
+                    <p class="text-sm text-slate-400">Total Orders</p>
+                    <p class="text-2xl font-bold text-slate-100" id="total-orders-chart">0</p>
+                </div>
+                <div class="p-4 bg-slate-700/50 rounded-lg">
+                    <p class="text-sm text-slate-400">Active Merchants</p>
+                    <p class="text-2xl font-bold text-slate-100" id="active-merchants">0</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="lg:col-span-2 bg-slate-800/80 p-6 rounded-xl border border-slate-700">
+            <h3 class="text-lg font-semibold text-slate-100 mb-4">Top Performing Merchants</h3>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left text-slate-400">
+                    <thead class="text-xs text-slate-400 uppercase bg-slate-700/50">
+                        <tr><th class="px-4 py-3">Rank</th><th class="px-4 py-3">Merchant</th><th class="px-4 py-3">Revenue</th><th class="px-4 py-3">Orders</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for merchant in top_merchants[:5] %}
+                        <tr class="border-b border-slate-700">
+                            <td class="px-4 py-3"><span class="bg-blue-600/50 text-blue-200 text-xs font-bold px-2 py-1 rounded-full">{{ loop.index }}</span></td>
+                            <td class="px-4 py-3 font-medium text-slate-200">{{ merchant.shop_name }}</td>
+                            <td class="px-4 py-3 text-green-400 font-semibold">${{ "{:,.2f}".format(merchant.total_revenue or 0) }}</td>
+                            <td class="px-4 py-3">{{ merchant.order_count }}</td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="4" class="px-4 py-4 text-center">No merchant data available for this period.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="bg-slate-800/80 p-6 rounded-xl border border-slate-700">
+            <h3 class="text-lg font-semibold text-slate-100 mb-4">New Merchants</h3>
+            <div class="h-80"><canvas id="shopsChart"></canvas></div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const slate400 = 'rgb(148 163 179)';
+const slate700 = 'rgb(51 65 85)';
+const months = ["", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+// Process and reverse the data arrays to show oldest dates on the left
+const revenueLabels = [{% for item in revenue_data %}`${months[{{ item._id.month }}]} {{ item._id.day }}`,{% endfor %}].reverse();
+const revenueData = [{% for item in revenue_data %}{{ item.total_revenue or 0 }},{% endfor %}].reverse();
+const revenueOrderCounts = [{% for item in revenue_data %}{{ item.order_count or 0 }},{% endfor %}].reverse();
+
+const shopsLabels = [{% for item in shops_data %}`${months[{{ item._id.month }}]} {{ item._id.day }}`,{% endfor %}].reverse();
+const shopsData = [{% for item in shops_data %}{{ item.shop_count or 0 }},{% endfor %}].reverse();
+
+// Revenue Chart
+const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+const revenueChart = new Chart(revenueCtx, {
+    type: 'line',
+    data: {
+        labels: revenueLabels,
+        datasets: [{
+            label: 'Revenue ($)',
+            data: revenueData,
+            borderColor: 'rgb(59 130 246)',
+            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+            tension: 0.4,
+            fill: true
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: { color: slate400, callback: value => '$' + value.toLocaleString() },
+                grid: { color: slate700 }
+            },
+            x: {
+                ticks: { 
+                    color: slate400,
+                    maxTicksLimit: {{ 10 if days > 60 else 31 }}
+                },
+                grid: { color: 'transparent' }
+            }
+        }
+    }
+});
+
+// Shops Chart
+const shopsCtx = document.getElementById('shopsChart').getContext('2d');
+const shopsChart = new Chart(shopsCtx, {
+    type: 'bar',
+    data: {
+        labels: shopsLabels,
+        datasets: [{
+            label: 'New Shops',
+            data: shopsData,
+            backgroundColor: 'rgba(34, 197, 94, 0.5)',
+            borderColor: 'rgb(34, 197, 94)',
+            borderWidth: 1
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: { color: slate400, precision: 0 },
+                grid: { color: slate700 }
+            },
+            x: {
+                ticks: { 
+                    color: slate400,
+                    maxTicksLimit: {{ 10 if days > 60 else 31 }}
+                },
+                grid: { color: 'transparent' }
+            }
+        }
+    }
+});
+
+function updateChartStats() {
+    let totalRevenue = 0;
+    let totalOrders = 0;
+    
+    // Calculate totals using the original arrays (not reversed)
+    {% for item in revenue_data %}
+        totalRevenue += {{ item.total_revenue or 0 }};
+        totalOrders += {{ item.order_count or 0 }};
+    {% endfor %}
+    
+    const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
+    
+    document.getElementById('total-revenue-chart').textContent = '$' + totalRevenue.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    document.getElementById('avg-order-value').textContent = '$' + avgOrderValue.toFixed(2);
+    document.getElementById('total-orders-chart').textContent = totalOrders.toLocaleString();
+    document.getElementById('active-merchants').textContent = '{{ top_merchants|length }}';
+}
+
+updateChartStats();
+</script>
+{% endblock %}

@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Track Orders | ShopsyPro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='assets/default_avatar.png') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
+    <!-- Cloudflare Turnstile -->
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+    <style>
+        :root {
+            --background-start-rgb: 23, 23, 33;
+            --background-end-rgb: 31, 41, 55;
+            --primary-start: 96, 165, 250; /* blue-400 */
+            --primary-end: 59, 130, 246; /* blue-600 */
+            --secondary-start: 107, 114, 128; /* gray-500 */
+            --secondary-end: 75, 85, 99; /* gray-600 */
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(to bottom, rgb(var(--background-start-rgb)), rgb(var(--background-end-rgb))) fixed;
+            color: #E5E7EB; /* gray-200 */
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .font-heading {
+            font-family: 'Poppins', sans-serif;
+        }
+
+        main {
+            flex: 1;
+        }
+
+        .card {
+            background-color: rgba(31, 41, 55, 0.5); /* gray-800 with opacity */
+            border: 1px solid rgba(75, 85, 99, 0.5); /* gray-600 with opacity */
+            border-radius: 0.75rem; /* rounded-xl */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease-in-out;
+            overflow: hidden;
+        }
+
+        .card:hover {
+            border-color: rgba(96, 165, 250, 0.5); /* blue-400 with opacity */
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.2);
+        }
+
+        .glass-effect {
+            background: rgba(23, 23, 33, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem; /* rounded-lg */
+            transition: all 0.3s ease;
+            border: none;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
+        }
+
+        .btn-primary {
+            color: white;
+            background-image: linear-gradient(to right, rgb(var(--primary-start)), rgb(var(--primary-end)));
+            background-size: 200% auto;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background-position: right center;
+            transform: scale(1.05);
+            box-shadow: 0 7px 15px rgba(var(--primary-start), 0.25);
+        }
+
+        .btn-secondary {
+            background-color: rgba(55, 65, 81, 0.8); /* gray-700 with opacity */
+            color: #D1D5DB; /* gray-300 */
+            border: 1px solid rgba(75, 85, 99, 0.8); /* gray-600 with opacity */
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background-color: rgba(75, 85, 99, 1); /* gray-600 */
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid rgba(75, 85, 99, 0.8);
+            border-radius: 0.5rem;
+            background-color: rgba(31, 41, 55, 0.8);
+            color: #E5E7EB;
+            font-size: 0.875rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #3B82F6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .form-input::placeholder {
+            color: #9CA3AF;
+        }
+
+        .track-card {
+            background: linear-gradient(145deg, rgba(31, 41, 55, 0.8), rgba(49, 46, 75, 0.8));
+            border: 1px solid rgba(75, 85, 99, 0.5);
+            border-radius: 1rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+
+        .track-card:hover {
+            border-color: rgba(96, 165, 250, 0.5);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.3);
+        }
+
+        .notification {
+            opacity: 0;
+            transform: translateY(20px) translateX(10px);
+            transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+        }
+
+        .notification.show {
+            opacity: 1;
+            transform: translateY(0) translateX(0);
+        }
+
+        @keyframes progress {
+            from { width: 100%; }
+            to { width: 0%; }
+        }
+
+        .notification .progress-bar {
+            height: 3px;
+            background-color: rgba(255,255,255,0.7);
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            animation-name: progress;
+            animation-timing-function: linear;
+            animation-fill-mode: forwards;
+            border-bottom-left-radius: 0.5rem;
+        }
+
+        @media (max-width: 640px) {
+            .track-card {
+                margin: 1rem;
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <!-- Header -->
+    <header class="glass-effect sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-4">
+                <a href="{{ url_for('dashboard.home') }}" class="text-2xl font-bold font-heading text-white tracking-tight hover:text-blue-300 transition-colors">
+                    ShopsyPro<span class="text-blue-400">.</span>
+                </a>
+                <nav class="hidden md:flex items-center space-x-8">
+                    <a href="{{ url_for('dashboard.home') }}" class="text-gray-300 hover:text-white transition-colors">Home</a>
+                </nav>
+                <!-- Mobile menu button -->
+                <button class="md:hidden text-gray-300 hover:text-white transition-colors" onclick="toggleMobileMenu()">
+                    <i class="fas fa-bars text-xl"></i>
+                </button>
+            </div>
+        </div>
+        
+            <!-- Mobile menu -->
+            <div id="mobileMenu" class="md:hidden hidden bg-gray-900/95 backdrop-blur-lg border-t border-gray-700/50">
+                <div class="px-4 py-6 space-y-4">
+                    <a href="{{ url_for('dashboard.home') }}" class="block text-gray-300 hover:text-white transition-colors py-2">Home</a>
+                </div>
+            </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-grow flex items-center justify-center py-12">
+        <div class="w-full max-w-lg mx-auto px-4">
+    <!-- Header -->
+    <div class="text-center mb-8">
+                <h1 class="text-3xl font-bold font-heading text-white mb-2">Track Your Orders</h1>
+      <p class="text-gray-400">Enter your email to view all your orders across ShopsyPro merchants</p>
+    </div>
+
+    <!-- Unified Track Orders Card -->
+            <div class="track-card p-8">
+      <!-- Email Input Form -->
+      <form id="trackOrdersForm" class="space-y-6">
+        <div>
+          <label for="email" class="block text-sm font-medium text-gray-300 mb-2">
+                            <i class="fas fa-envelope mr-2"></i>Email Address
+          </label>
+          <input type="email" 
+                 id="email" 
+                 name="email" 
+                 required
+                 placeholder="Enter your email address..."
+                               class="form-input">
+          <p class="text-xs text-gray-400 mt-2">We'll send a verification code to this email</p>
+        </div>
+
+        <!-- Cloudflare Turnstile Captcha -->
+        <div class="flex justify-center">
+          <div id="cf-turnstile" 
+               class="cf-turnstile" 
+               data-sitekey="{{ config.CLOUDFLARE_SITE_KEY }}"
+               data-callback="onCaptchaSuccess"
+               data-error-callback="onCaptchaError"
+               data-theme="dark"></div>
+        </div>
+
+        <button type="submit" 
+                id="sendOtpBtn"
+                disabled
+                            class="btn btn-primary w-full">
+                        <span class="btn-text">
+                            <i class="fas fa-paper-plane mr-2"></i>
+                            Send Verification Code
+                        </span>
+          <span class="btn-loading hidden">
+                            <i class="fas fa-spinner fa-spin mr-2"></i>
+            Sending...
+          </span>
+        </button>
+      </form>
+
+      <!-- Success Message -->
+      <div id="successMessage" class="hidden mt-6 p-4 bg-green-600/20 border border-green-500/50 rounded-md">
+        <div class="flex">
+          <div class="flex-shrink-0">
+                            <i class="fas fa-check-circle text-green-400 text-xl"></i>
+          </div>
+          <div class="ml-3">
+            <p class="text-sm font-medium text-green-400">Verification code sent!</p>
+            <p class="text-sm text-green-300 mt-1" id="successText">Please check your email and click the link below when ready.</p>
+            <p class="text-xs text-green-400 mt-2" id="redirectText" style="display: none;">
+              Redirecting to verification page in <span id="countdown">2</span> seconds...
+            </p>
+          </div>
+        </div>
+        <div class="mt-4">
+                        <a href="#" id="verifyLink" class="btn btn-primary text-sm">
+                            <i class="fas fa-arrow-right mr-2"></i>
+            Enter Verification Code
+          </a>
+        </div>
+      </div>
+
+      <!-- Error Message -->
+      <div id="errorMessage" class="hidden mt-6 p-4 bg-red-600/20 border border-red-500/50 rounded-md">
+        <div class="flex">
+          <div class="flex-shrink-0">
+                            <i class="fas fa-exclamation-circle text-red-400 text-xl"></i>
+          </div>
+          <div class="ml-3">
+            <p class="text-sm font-medium text-red-400">Error</p>
+            <p class="text-sm text-red-300 mt-1" id="errorText">Something went wrong. Please try again.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Privacy Info Section (integrated) -->
+      <div class="mt-8 pt-6 border-t border-gray-700/50">
+        <h3 class="text-lg font-semibold text-white mb-4 flex items-center">
+          <i class="fas fa-shield-alt mr-2 text-blue-400"></i>
+          Your Privacy is Protected
+        </h3>
+        <div class="space-y-2 text-sm text-gray-400">
+          <p class="flex items-center">
+            <i class="fas fa-check text-green-400 mr-2 flex-shrink-0"></i>
+            We only show orders associated with your email
+          </p>
+          <p class="flex items-center">
+            <i class="fas fa-check text-green-400 mr-2 flex-shrink-0"></i>
+            Verification codes expire after 2 hours
+          </p>
+          <p class="flex items-center">
+            <i class="fas fa-check text-green-400 mr-2 flex-shrink-0"></i>
+            Your session expires after 30 minutes for security
+          </p>
+          <p class="flex items-center">
+            <i class="fas fa-check text-green-400 mr-2 flex-shrink-0"></i>
+            No passwords required - secure email verification only
+          </p>
+        </div>
+      </div>
+    </div>
+        </div>
+    </main>
+
+    {% include 'components/footer.html' %}
+
+    <!-- Floating Support Icon -->
+    {% include 'components/support.html' %}
+
+<script>
+// Mobile menu toggle function
+function toggleMobileMenu() {
+    const mobileMenu = document.getElementById('mobileMenu');
+    mobileMenu.classList.toggle('hidden');
+}
+
+// Captcha callback functions
+let captchaToken = null;
+
+function onCaptchaSuccess(token) {
+  captchaToken = token;
+  const sendBtn = document.getElementById('sendOtpBtn');
+  sendBtn.disabled = false;
+  sendBtn.classList.remove('opacity-50');
+}
+
+function onCaptchaError() {
+  captchaToken = null;
+  const sendBtn = document.getElementById('sendOtpBtn');
+  sendBtn.disabled = true;
+  sendBtn.classList.add('opacity-50');
+  showError('Captcha verification failed. Please try again.');
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  const form = document.getElementById('trackOrdersForm');
+  const emailInput = document.getElementById('email');
+  const sendBtn = document.getElementById('sendOtpBtn');
+  const btnText = sendBtn.querySelector('.btn-text');
+  const btnLoading = sendBtn.querySelector('.btn-loading');
+  const successMessage = document.getElementById('successMessage');
+  const errorMessage = document.getElementById('errorMessage');
+  const successText = document.getElementById('successText');
+  const errorText = document.getElementById('errorText');
+  const verifyLink = document.getElementById('verifyLink');
+
+  form.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const email = emailInput.value.trim();
+    if (!email) {
+      showError('Please enter your email address');
+      return;
+    }
+
+    if (!captchaToken) {
+      showError('Please complete the captcha verification');
+      return;
+    }
+
+    // Show loading state
+    setLoading(true);
+    hideMessages();
+
+    try {
+      const response = await fetch('/api/track-orders/send-otp', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          email: email,
+          captcha_token: captchaToken
+        })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        // Direct redirect to verification page without intermediate success screen
+        window.location.href = `/track-orders/verify?email=${encodeURIComponent(email)}`;
+      } else {
+        showError(data.message);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      showError('Network error. Please check your connection and try again.');
+    } finally {
+      setLoading(false);
+    }
+  });
+
+  function setLoading(loading) {
+    sendBtn.disabled = loading;
+    if (loading) {
+      btnText.classList.add('hidden');
+      btnLoading.classList.remove('hidden');
+    } else {
+      btnText.classList.remove('hidden');
+      btnLoading.classList.add('hidden');
+    }
+  }
+
+  function showSuccess(message, email) {
+    successText.textContent = message;
+    verifyLink.href = `/track-orders/verify?email=${encodeURIComponent(email)}`;
+    successMessage.classList.remove('hidden');
+    errorMessage.classList.add('hidden');
+    
+    // Show countdown and auto-redirect
+    const redirectText = document.getElementById('redirectText');
+    const countdownSpan = document.getElementById('countdown');
+    redirectText.style.display = 'block';
+    
+    let countdown = 2;
+    const countdownInterval = setInterval(() => {
+      countdown--;
+      countdownSpan.textContent = countdown;
+      
+      if (countdown <= 0) {
+        clearInterval(countdownInterval);
+        window.location.href = `/track-orders/verify?email=${encodeURIComponent(email)}`;
+      }
+    }, 1000);
+  }
+
+  function showError(message) {
+    errorText.textContent = message;
+    errorMessage.classList.remove('hidden');
+    successMessage.classList.add('hidden');
+  }
+
+  function hideMessages() {
+    successMessage.classList.add('hidden');
+    errorMessage.classList.add('hidden');
+  }
+});
+</script>
+</body>
+</html> 

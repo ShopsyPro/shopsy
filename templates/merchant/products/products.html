@@ -1,0 +1,1193 @@
+{% extends "_base/base.html" %}
+
+{% block title %}Product Dashboard | ShopsyPro{% endblock %}
+
+{% block content %}    
+<section id="products" class="min-h-screen p-6 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900" style="display: block;">
+    <div class="max-w-7xl mx-auto">
+      <!-- Header -->
+      <header class="mb-8">
+        <h2 class="text-2xl font-bold text-white">View Products</h2>
+        <p class="text-gray-400">Manage your product inventory</p>
+      </header>
+      
+
+
+      <!-- Actions Bar -->
+      <div class="flex justify-end mb-6">
+        <a href="{{ url_for('products.add_product_page') }}" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center">
+          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+          </svg>
+          Add New Product
+        </a>
+      </div>
+
+      <!-- Products List -->
+      <div class="bg-gray-900 rounded-lg p-6 border border-gray-800">
+        <div class="flex items-center justify-between mb-6">
+          <div class="flex items-center space-x-4">
+            <h3 class="text-xl font-medium text-white">Your Products</h3>
+            {% if pagination.total_products > 0 %}
+              <span class="text-gray-400 text-sm">({{ pagination.total_products }} total)</span>
+            {% endif %}
+          </div>
+          
+          <div class="flex space-x-4">
+            <div class="relative">
+              <select id="categoryFilter" class="w-full md:w-48 pl-10 pr-4 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                <option value="">ALL</option>
+                {% for category in categories %}
+                  <option value="{{ category._id }}" {% if selected_category == category._id|string %}selected{% endif %}>{{ category.name }}</option>
+                {% endfor %}
+              </select>
+              <div class="absolute left-3 top-2.5">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+                </svg>
+              </div>
+            </div>
+            
+            <div class="relative">
+              <input type="text" id="searchProducts" placeholder="Search products..." value="{{ search_query }}" class="w-full md:w-64 pl-10 pr-4 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+              <div class="absolute left-3 top-2.5">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="overflow-x-auto">
+          <table class="w-full">
+            <thead>
+              <tr class="text-left text-gray-400 border-b border-gray-800">
+                <th class="pb-3 font-medium">Product</th>
+                <th class="pb-3 font-medium">Category</th>
+                <th class="pb-3 font-medium">Price</th>
+                <th class="pb-3 font-medium">Stock</th>
+                <th class="pb-3 font-medium">Status</th>
+                <th class="pb-3 font-medium text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-800" id="productsTableBody">
+              {% if products %}
+                {% for product in products %}
+                  <tr class="text-white product-row">
+                    <td class="py-4">
+                      <div class="flex items-center">
+                        <div class="h-10 w-10 rounded bg-gray-800 flex items-center justify-center mr-3">
+                          {% if product.image_url %}
+                            <img src="{{ product.image_url }}" alt="{{ product.name }}" class="h-10 w-10 rounded object-cover">
+                          {% endif %}
+                        </div>
+                        <span>{{ product.name }}</span>
+                      </div>
+                    </td>
+                    <td class="py-4">{{ product.category_name }}</td>
+                    <td class="py-4">${{ "%.2f"|format(product.price) }}</td>
+                    <td class="py-4">
+                      {% if product.has_duration_pricing %}
+                        {% if product.available_duration_options == 0 %}
+                          <span class="px-2 py-1 text-xs rounded-full bg-red-500/20 text-red-500">No Options Available</span>
+                        {% else %}
+                          <span class="px-2 py-1 text-xs rounded-full bg-blue-500/20 text-blue-400">{{ product.available_duration_options }} Option{{ 's' if product.available_duration_options != 1 else '' }} Available</span>
+                        {% endif %}
+                      {% elif product.stock == 0 %}
+                        <span class="px-2 py-1 text-xs rounded-full bg-red-500/20 text-red-500">Out of Stock (0)</span>
+                      {% elif product.infinite_stock %}
+                        <span class="px-2 py-1 text-xs rounded-full bg-purple-500/20 text-purple-400">Unlimited</span>
+                      {% elif product.stock < 5 %}
+                        <span class="px-2 py-1 text-xs rounded-full bg-yellow-500/20 text-yellow-500">Low Stock ({{ product.stock }})</span>
+                      {% else %}
+                        <span class="px-2 py-1 text-xs rounded-full bg-green-500/20 text-green-500">In Stock ({{ product.stock }})</span>
+                      {% endif %}
+                    </td>
+                    <td class="py-4">
+                      <div class="flex items-center space-x-2">
+                        {% if product.is_visible is defined and product.is_visible %}
+                          <span class="px-2 py-1 text-xs rounded-full bg-green-500/20 text-green-400">Listed</span>
+                          <button class="text-orange-400 hover:text-orange-500 quick-toggle-visibility" 
+                                  data-id="{{ product._id }}" 
+                                  data-action="hide" 
+                                  title="Hide product from storefront">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L12 12m6-6l6 6m-6-6v6m0-6h-6"></path>
+                            </svg>
+                          </button>
+                        {% else %}
+                          <span class="px-2 py-1 text-xs rounded-full bg-gray-500/20 text-gray-400">Hidden</span>
+                          <button class="text-green-400 hover:text-green-500 quick-toggle-visibility" 
+                                  data-id="{{ product._id }}" 
+                                  data-action="show" 
+                                  title="Show product on storefront">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                            </svg>
+                          </button>
+                        {% endif %}
+                      </div>
+                    </td>
+                    <td class="py-4 text-right">
+                      <button class="text-gray-400 hover:text-blue-500 mr-3 edit-product-btn" 
+                              data-id="{{ product._id }}"
+                              data-name="{{ product.name }}"
+                              data-price="{{ product.price }}"
+                              data-description="{{ product.description or '' }}"
+                              data-stock="{{ product.stock }}"
+                              data-stock-values='{{ (product.stock_values|join(product.stock_delimiter or "|") if product.stock_values else "") }}'
+                              data-stock-delimiter="{{ product.stock_delimiter or '|' }}"
+                              data-infinite-stock="{{ product.infinite_stock|lower }}"
+                              data-category="{{ product.category_id or '' }}"
+                                            data-has-duration-pricing="{{ product.has_duration_pricing|lower }}"
+              data-pricing-options='{{ product.pricing_options|tojson if product.pricing_options else "[]" }}'
+              data-image-url="{{ product.image_url or '' }}"
+              data-is-visible="{{ product.is_visible|lower if product.is_visible is defined else 'true' }}">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                        </svg>
+                      </button>
+                      <button class="text-gray-400 hover:text-red-500 delete-product-btn" data-id="{{ product._id }}">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                        </svg>
+                      </button>
+                    </td>
+                  </tr>
+                {% endfor %}
+              {% else %}
+                <tr class="text-white">
+                  <td colspan="7" class="py-4 text-center">
+                    No products found. 
+                    <a href="{{ url_for('products.add_product') }}" class="text-blue-500 hover:text-blue-400">Add your first product</a>
+                  </td>
+                </tr>
+              {% endif %}
+            </tbody>
+          </table>
+        </div>
+        
+        <!-- Pagination Controls -->
+        {% if pagination.total_pages > 1 %}
+        <div class="mt-6 flex items-center justify-between">
+          <div class="text-sm text-gray-400">
+            Showing {{ (pagination.page - 1) * pagination.per_page + 1 }} to {{ pagination.page * pagination.per_page if pagination.page * pagination.per_page < pagination.total_products else pagination.total_products }} of {{ pagination.total_products }} products
+          </div>
+          
+          <nav class="flex items-center space-x-2">
+            {% if pagination.has_prev %}
+            <a href="{{ url_for('products.products', page=pagination.prev_num, search=search_query, category=selected_category) }}" 
+               class="px-3 py-2 text-sm font-medium text-gray-300 hover:text-white hover:bg-gray-700 rounded-lg transition-colors">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+              </svg>
+            </a>
+            {% endif %}
+            
+            {% for page_num in range(1, pagination.total_pages + 1) %}
+              {% if page_num == pagination.page %}
+                <span class="px-3 py-2 text-sm font-medium bg-blue-600 text-white rounded-lg">{{ page_num }}</span>
+              {% elif page_num <= 3 or page_num > pagination.total_pages - 3 or (page_num >= pagination.page - 1 and page_num <= pagination.page + 1) %}
+                <a href="{{ url_for('products.products', page=page_num, search=search_query, category=selected_category) }}" 
+                   class="px-3 py-2 text-sm font-medium text-gray-300 hover:text-white hover:bg-gray-700 rounded-lg transition-colors">
+                  {{ page_num }}
+                </a>
+              {% elif page_num == 4 and pagination.page > 6 %}
+                <span class="px-2 py-2 text-gray-400">...</span>
+              {% elif page_num == pagination.total_pages - 3 and pagination.page < pagination.total_pages - 5 %}
+                <span class="px-2 py-2 text-gray-400">...</span>
+              {% endif %}
+            {% endfor %}
+            
+            {% if pagination.has_next %}
+            <a href="{{ url_for('products.products', page=pagination.next_num, search=search_query, category=selected_category) }}" 
+               class="px-3 py-2 text-sm font-medium text-gray-300 hover:text-white hover:bg-gray-700 rounded-lg transition-colors">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+              </svg>
+            </a>
+            {% endif %}
+          </nav>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+</section>
+
+<!-- Edit Product Modal -->
+<div id="editProductModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+  <div class="bg-gray-900 rounded-lg p-6 border border-gray-800 w-full max-w-7xl max-h-[90vh] overflow-y-auto">
+    <div class="flex justify-between items-center mb-6">
+      <h3 class="text-xl font-medium text-white">Edit Product</h3>
+      <button id="closeEditModal" class="text-gray-400 hover:text-white">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+    </div>
+    
+    <form id="editProductForm" method="POST" enctype="multipart/form-data">
+      <input type="hidden" id="editProductId" name="productId">
+      
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        <!-- Left Column: Main Content -->
+        <div class="lg:col-span-2 space-y-8">
+          
+          <!-- Card 1: Product Details -->
+          <div class="bg-gray-800/50 rounded-lg p-6 border border-gray-700/50">
+            <h3 class="text-xl font-semibold text-white mb-6">Product Details</h3>
+            <div class="space-y-6">
+              <div>
+                <label for="editProductName" class="block text-sm font-medium text-gray-400 mb-2">Product Name</label>
+                <input type="text" id="editProductName" name="productName" class="w-full px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Enter product name" required>
+              </div>
+              
+              <div>
+                <label for="editProductCategory" class="block text-sm font-medium text-gray-400 mb-2">Category</label>
+                <select id="editProductCategory" name="productCategory" class="w-full px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                  <option value="">ALL</option>
+                  {% for category in categories %}
+                    <option value="{{ category._id }}">{{ category.name }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              
+              <div>
+                <label for="editProductDescription" class="block text-sm font-medium text-gray-400 mb-2">Description (optional)</label>
+                
+                <!-- Rich Text Editor Toolbar -->
+                <div class="mb-2 flex flex-wrap gap-1 p-2 bg-gray-700 rounded-lg border border-gray-600">
+                  <button type="button" class="edit-rich-text-btn" data-command="bold" title="Bold">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 12h8a4 4 0 100-8H6v8zm0 0h8a4 4 0 110 8H6v-8z"></path>
+                    </svg>
+                  </button>
+                  <button type="button" class="edit-rich-text-btn" data-command="italic" title="Italic">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
+                    </svg>
+                  </button>
+                  <button type="button" class="edit-rich-text-btn" data-command="underline" title="Underline">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"></path>
+                    </svg>
+                  </button>
+                  <div class="w-px h-6 bg-gray-600 mx-1"></div>
+                  <button type="button" class="edit-rich-text-btn" data-command="insertUnorderedList" title="Bullet List">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
+                    </svg>
+                  </button>
+                  <button type="button" class="edit-rich-text-btn" data-command="insertOrderedList" title="Numbered List">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"></path>
+                    </svg>
+                  </button>
+                  <div class="w-px h-6 bg-gray-600 mx-1"></div>
+                  <button type="button" class="edit-rich-text-btn" data-command="justifyLeft" title="Align Left">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
+                    </svg>
+                  </button>
+                  <button type="button" class="edit-rich-text-btn" data-command="justifyCenter" title="Align Center">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
+                    </svg>
+                  </button>
+                  <button type="button" class="edit-rich-text-btn" data-command="justifyRight" title="Align Right">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
+                    </svg>
+                  </button>
+                </div>
+                
+                <!-- Rich Text Editor Content -->
+                <div id="editRichTextEditor" class="w-full px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[120px] max-h-[300px] overflow-y-auto" contenteditable="true" data-placeholder="Enter product description"></div>
+                <input type="hidden" id="editProductDescription" name="productDescription">
+                
+                <div class="mt-2 text-xs text-gray-500">
+                  <span class="text-blue-400">💡 Tip:</span> Use the toolbar above to format your description. This will be displayed on your shop frontend.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 2: Stock & Delivery -->
+          <div class="bg-gray-800/50 rounded-lg p-6 border border-gray-700/50">
+            <h3 class="text-xl font-semibold text-white mb-6">Stock & Delivery</h3>
+            <div class="space-y-6">
+              <!-- Infinite Stock Toggle -->
+              <div class="flex items-center justify-between p-4 bg-gray-800 rounded-lg border border-gray-700">
+                <div>
+                  <label class="block text-sm font-medium text-white mb-1">Stock Mode</label>
+                  <p class="text-xs text-gray-400">Choose between limited or unlimited stock</p>
+                </div>
+                <div class="flex items-center space-x-3">
+                  <span class="text-sm text-gray-400">Limited</span>
+                  <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" id="editInfiniteStock" name="infiniteStock" class="sr-only peer" onchange="toggleEditInfiniteStock()">
+                    <div class="w-11 h-6 bg-gray-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                  </label>
+                  <span class="text-sm text-gray-400">Infinite</span>
+                </div>
+              </div>
+
+              <!-- Stock Delimiter Selection -->
+              <div id="editDelimiterContainer">
+                <label for="editStockDelimiter" class="block text-sm font-medium text-gray-400 mb-2">Stock Values Delimiter</label>
+                <div class="relative">
+                  <select id="editStockDelimiter" name="stockDelimiter" class="w-full px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none cursor-pointer" onchange="updateEditDelimiterExample()">
+                    <option value=",">📝 Comma (,) - Recommended</option>
+                    <option value="|">📊 Pipe (|)<option>
+                    <option value="newline">📄 New Line</option>
+                  </select>
+                  <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Stock Values Section -->
+              <div id="editStockValuesSection">
+                <label for="editStockValues" class="block text-sm font-medium text-gray-400 mb-2">
+                  <span id="editStockValuesLabel">Stock Values</span>
+                  <span id="editStockCount" class="text-blue-400 font-bold">(Stock: 0)</span>
+                  <span id="editStockValidation" class="text-xs px-2 py-1 rounded-full hidden"></span>
+                </label>
+                <div class="relative">
+                  <textarea id="editStockValues" name="stockValues" rows="4" class="w-full px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm resize-none" placeholder="Enter your product values..." oninput="calculateEditStock()"></textarea>
+                </div>
+                <div class="mt-2 p-3 bg-gray-800 rounded-lg border border-gray-700">
+                  <p class="text-xs text-gray-400 mb-2">💡 <strong id="editHowItWorksTitle">How it works:</strong></p>
+                  <div id="editDelimiterExample" class="text-xs text-gray-300 bg-gray-700 p-2 rounded font-mono">
+                    ABCD1234, user:pass, LICENSE123
+                  </div>
+                  <p id="editStockDescription" class="text-xs text-gray-500 mt-2">These values will be delivered to customers via email upon purchase. Stock count is automatically calculated from unique values.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 3: Pricing -->
+          <div class="bg-gray-800/50 rounded-lg p-6 border border-gray-700/50">
+            <h3 class="text-xl font-semibold text-white mb-6">Pricing</h3>
+            <div class="space-y-6">
+              <div id="editDefaultPriceContainer">
+                <label for="editProductPrice" class="block text-sm font-medium text-gray-400 mb-2">Default Price ($)</label>
+                <input type="number" id="editProductPrice" name="productPrice" min="0" step="0.01" class="w-full px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="0.00" required>
+              </div>
+
+              <!-- Duration-based pricing options -->
+              <div>
+                <div class="flex justify-between items-center mb-2">
+                  <label class="text-sm font-medium text-gray-400">Pricing Options (optional)</label>
+                  <button type="button" id="editAddPricingOption" class="text-sm text-blue-500 hover:text-blue-400 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                    </svg>
+                    Add Option
+                  </button>
+                </div>
+                <div id="editPricingOptionsContainer" class="space-y-3">
+                  <!-- Dynamic pricing options will be inserted here -->
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Right Column: Sidebar -->
+        <div class="lg:col-span-1 space-y-8">
+          
+          <!-- Card 4: Product Image -->
+          <div class="bg-gray-800/50 rounded-lg p-6 border border-gray-700/50">
+            <h3 class="text-xl font-semibold text-white mb-6">Product Image</h3>
+            <div>
+              <div class="flex items-center justify-center w-full">
+                <label for="editProductImage" class="flex flex-col items-center justify-center w-full h-40 border-2 border-gray-700 border-dashed rounded-lg cursor-pointer bg-gray-800 hover:bg-gray-700 transition-colors">
+                  <div id="editImagePreviewContainer" class="flex flex-col items-center justify-center pt-5 pb-6 text-center">
+                    <div id="currentImagePreview" class="w-full h-full flex items-center justify-center">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                      </svg>
+                    </div>
+                    <p class="mb-1 text-sm text-gray-400 mt-2"><span class="font-semibold">Click to upload</span> or D&D</p>
+                    <p class="text-xs text-gray-500">PNG, JPG, GIF up to 2MB</p>
+                  </div>
+                  <input id="editProductImage" name="productImage" type="file" class="hidden" accept="image/*">
+                </label>
+              </div>
+              
+              <!-- Image Cropping Controls for Edit -->
+              <div id="editImageCropControls" class="mt-4 hidden">
+                <div class="flex items-center justify-between mb-3">
+                  <h4 class="text-sm font-medium text-gray-300">Crop & Preview</h4>
+                  <button type="button" id="editCropImageBtn" class="px-3 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 transition-colors">
+                    Apply Crop
+                  </button>
+                </div>
+                
+                                  <!-- Crop Preview -->
+                  <div class="relative bg-gray-900 rounded-lg p-4 border border-gray-700">
+                    <div class="flex items-center justify-between mb-2">
+                      <span class="text-xs text-gray-400">Shop Frontend Preview:</span>
+                      <div class="flex items-center space-x-2">
+                        <button type="button" id="editCropResetBtn" class="text-xs text-gray-400 hover:text-white">Reset</button>
+                        <button type="button" id="editCropRotateBtn" class="text-xs text-gray-400 hover:text-white">Rotate</button>
+                      </div>
+                    </div>
+                    
+                    <!-- Device Preview Tabs -->
+                    <div class="flex space-x-1 mb-3">
+                      <button type="button" class="edit-device-tab active px-2 py-1 text-xs rounded bg-blue-600 text-white" data-device="desktop">Desktop</button>
+                      <button type="button" class="edit-device-tab px-2 py-1 text-xs rounded bg-gray-700 text-gray-300 hover:bg-gray-600" data-device="tablet">Tablet</button>
+                      <button type="button" class="edit-device-tab px-2 py-1 text-xs rounded bg-gray-700 text-gray-300 hover:bg-gray-600" data-device="mobile">Mobile</button>
+                    </div>
+                    
+                    <!-- Desktop Preview -->
+                    <div id="editDesktopPreview" class="edit-device-preview active">
+                      <div class="bg-gray-800 rounded-lg p-3 mb-2">
+                        <div class="text-xs text-gray-400 mb-1">Desktop (3-column grid)</div>
+                        <div class="w-full h-32 bg-gray-700 rounded overflow-hidden">
+                          <div id="editCropPreviewDesktop" class="w-full h-full flex items-center justify-center">
+                            <span class="text-gray-500 text-xs">Upload an image to start cropping</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <!-- Tablet Preview -->
+                    <div id="editTabletPreview" class="edit-device-preview hidden">
+                      <div class="bg-gray-800 rounded-lg p-3 mb-2">
+                        <div class="text-xs text-gray-400 mb-1">Tablet (2-column grid)</div>
+                        <div class="w-full h-40 bg-gray-700 rounded overflow-hidden">
+                          <div id="editCropPreviewTablet" class="w-full h-full flex items-center justify-center">
+                            <span class="text-gray-500 text-xs">Upload an image to start cropping</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <!-- Mobile Preview -->
+                    <div id="editMobilePreview" class="edit-device-preview hidden">
+                      <div class="bg-gray-800 rounded-lg p-3 mb-2">
+                        <div class="text-xs text-gray-400 mb-1">Mobile (1-column grid)</div>
+                        <div class="w-full h-48 bg-gray-700 rounded overflow-hidden">
+                          <div id="editCropPreviewMobile" class="w-full h-full flex items-center justify-center">
+                            <span class="text-gray-500 text-xs">Upload an image to start cropping</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <!-- Actual Crop Area -->
+                    <div class="mt-3 p-2 bg-gray-800 rounded border border-gray-600">
+                      <div class="text-xs text-gray-400 mb-2">Crop Area (what you're selecting):</div>
+                      <div id="editCropPreviewContainer" class="relative w-full h-48 bg-gray-700 rounded-lg overflow-hidden">
+                        <div id="editCropPreview" class="w-full h-full flex items-center justify-center">
+                          <span class="text-gray-500 text-sm">Upload an image to start cropping</span>
+                        </div>
+                      </div>
+                    </div>
+                  
+                  <!-- Crop Aspect Ratio Options -->
+                  <div class="mt-3 flex items-center space-x-2">
+                    <span class="text-xs text-gray-400">Aspect Ratio:</span>
+                    <button type="button" class="edit-crop-ratio-btn active" data-ratio="1:1">1:1</button>
+                    <button type="button" class="edit-crop-ratio-btn" data-ratio="4:3">4:3</button>
+                    <button type="button" class="edit-crop-ratio-btn" data-ratio="16:9">16:9</button>
+                    <button type="button" class="edit-crop-ratio-btn" data-ratio="free">Free</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 5: Publish -->
+          <div class="bg-gray-800/50 rounded-lg p-6 border border-gray-700/50">
+            <h3 class="text-xl font-semibold text-white mb-6">Update Product</h3>
+            <div class="space-y-4">
+              <!-- Visibility Toggle -->
+              <div class="flex items-center justify-between p-4 bg-gray-800 rounded-lg border border-gray-700">
+                <div>
+                  <label class="block text-sm font-medium text-white mb-1">Product Visibility</label>
+                  <p class="text-xs text-gray-400">Control whether this product appears on your storefront</p>
+                </div>
+                <div class="flex items-center space-x-3">
+                  <span class="text-sm text-gray-400">Hidden</span>
+                  <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" id="editIsVisible" name="isVisible" class="sr-only peer" checked>
+                    <div class="w-11 h-6 bg-gray-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
+                  </label>
+                  <span class="text-sm text-gray-400">Listed</span>
+                </div>
+              </div>
+              
+              <div class="flex flex-col space-y-3">
+                <button type="submit" class="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900 transition-colors font-medium">
+                  Save Changes
+                </button>
+                <button type="button" id="cancelEditProduct" class="w-full px-6 py-3 bg-gray-800 text-white rounded-lg hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:ring-offset-gray-900 transition-colors">
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Delete Product Modal -->
+<div id="deleteProductModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+  <div class="bg-gray-900 rounded-lg p-6 border border-gray-800 w-full max-w-md mx-4">
+    <div class="flex justify-between items-center mb-6">
+      <h3 class="text-xl font-medium text-white">Confirm Delete</h3>
+      <button id="closeDeleteModal" class="text-gray-400 hover:text-white">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+    </div>
+    
+    <p class="text-gray-300 mb-6">Are you sure you want to delete this product? This action cannot be undone.</p>
+    
+    <form id="deleteProductForm" method="POST" class="flex justify-end space-x-3">
+      <input type="hidden" id="deleteProductId" name="productId">
+      
+      <button type="button" id="cancelDeleteProduct" class="px-6 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:ring-offset-gray-900 transition-colors">
+        Cancel
+      </button>
+      <button type="submit" class="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-gray-900 transition-colors">
+        Delete
+      </button>
+    </form>
+  </div>
+</div>
+
+<!-- Load Cropper.js library -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/rich-text-editor.css') }}">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
+  <script src="{{ url_for('static', filename='js/rich-text-editor.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/image-cropper.js') }}"></script>
+  
+  <script>
+  document.addEventListener('DOMContentLoaded', function() {
+    
+    // Edit Product functionality
+    const editButtons = document.querySelectorAll('.edit-product-btn');
+    const editModal = document.getElementById('editProductModal');
+    const closeEditModalBtn = document.getElementById('closeEditModal');
+    const cancelEditBtn = document.getElementById('cancelEditProduct');
+    const editForm = document.getElementById('editProductForm');
+    
+    // Pricing options functionality
+    const editAddPricingOptionBtn = document.getElementById('editAddPricingOption');
+    const editPricingOptionsContainer = document.getElementById('editPricingOptionsContainer');
+    
+    // Add a new pricing option row
+    editAddPricingOptionBtn.addEventListener('click', function() {
+      addEditPricingOptionRow();
+    });
+    
+    // Function to add a pricing option row for edit modal
+    function addEditPricingOptionRow(id = '', name = '', price = '', stock = '', stockValues = '', stockDelimiter = '|') {
+      const optionRow = document.createElement('div');
+      optionRow.className = 'pricing-option-row bg-gray-800 rounded-lg p-4 border border-gray-700';
+      
+      optionRow.innerHTML = `
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-400 mb-2">Option Name</label>
+            <input type="text" name="duration_name[]" placeholder="e.g. 1 Hour, 1 Day, 1 Week" 
+                   value="${name}" 
+                   class="w-full px-3 py-2 rounded-lg bg-gray-700 border border-gray-600 text-white text-sm focus:border-purple-500 focus:outline-none"
+                   required>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-400 mb-2">Price ($)</label>
+            <input type="number" name="duration_price[]" placeholder="0.00" 
+                   value="${price}" 
+                   min="0" step="0.01" 
+                   class="w-full px-3 py-2 rounded-lg bg-gray-700 border border-gray-600 text-white text-sm focus:border-purple-500 focus:outline-none"
+                   required>
+          </div>
+        </div>
+        <div class="mb-4" id="editOptionStockValuesContainer">
+          <label class="block text-sm font-medium text-gray-400 mb-2">
+            Stock Values for this Option 
+            <span class="option-stock-count text-blue-400 font-bold">(Stock: ${stock || 0})</span>
+            <span class="option-stock-validation text-xs px-2 py-1 rounded-full hidden"></span>
+          </label>
+          <div class="relative">
+            <textarea name="duration_stock_values[]" rows="3" 
+                      class="w-full px-3 py-2 rounded-lg bg-gray-700 border border-gray-600 text-white text-sm focus:border-purple-500 focus:outline-none font-mono option-stock-values resize-none"
+                      placeholder="Enter values for this option..." 
+                      oninput="calculateEditOptionStock(this)">${stockValues || ''}</textarea>
+          </div>
+          <p class="text-xs text-gray-500 mt-1">Use the same delimiter as selected above</p>
+        </div>
+        <div class="flex justify-end">
+          <button type="button" class="remove-option text-red-400 hover:text-red-500 flex items-center text-sm">
+            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+            </svg>
+            Remove Option
+          </button>
+        </div>
+      `;
+      
+      // Add event listener to remove button
+      const removeBtn = optionRow.querySelector('.remove-option');
+      removeBtn.addEventListener('click', function() {
+        optionRow.remove();
+        updateEditStockFieldStatus();
+      });
+      
+      editPricingOptionsContainer.appendChild(optionRow);
+      
+      // Calculate initial stock if stock values provided
+      if (stockValues) {
+        const textarea = optionRow.querySelector('textarea[name="duration_stock_values[]"]');
+        calculateEditOptionStock(textarea);
+      }
+      
+      updateEditStockFieldStatus();
+    }
+    
+    // Rich text editor instance for edit modal
+    let editRichTextEditor;
+    
+    // Initialize rich text editor for edit modal
+    function initEditRichTextEditor() {
+      editRichTextEditor = new RichTextEditor({
+        editorId: 'editRichTextEditor',
+        hiddenInputId: 'editProductDescription',
+        toolbarClass: 'edit-rich-text-btn',
+        isEdit: true
+      });
+    }
+    
+    // Initialize rich text editor
+    initEditRichTextEditor();
+    
+    // Update edit form submission to ensure rich text content is included
+    document.getElementById('editProductForm').addEventListener('submit', function(e) {
+      // Ensure the hidden description input is updated before submission
+      if (editRichTextEditor) {
+        editRichTextEditor.updateHiddenInput();
+      }
+    });
+    
+    // Image Cropping Functionality for Edit Modal
+    let editImageCropper;
+    
+    function initEditImageCropping() {
+      editImageCropper = new ImageCropper({
+        cropControlsId: 'editImageCropControls',
+        cropPreviewId: 'editCropPreview',
+        fileInputId: 'editProductImage',
+        isEdit: true
+      });
+    }
+    
+    function showEditImagePreview(file) {
+      if (editImageCropper) {
+        editImageCropper.showImagePreview(file);
+      }
+    }
+    
+    function showEditCropInterface(imageUrl, file) {
+      if (editImageCropper) {
+        editImageCropper.showCropInterface(imageUrl, file);
+      }
+    }
+    
+
+    
+
+    
+    // Initialize edit image cropping
+    initEditImageCropping();
+    
+    editButtons.forEach(button => {
+      button.addEventListener('click', function() {
+        const productId = this.getAttribute('data-id');
+        const productName = this.getAttribute('data-name');
+        const productPrice = this.getAttribute('data-price');
+        const productDescription = this.getAttribute('data-description');
+        const productStock = this.getAttribute('data-stock');
+        const productCategory = this.getAttribute('data-category');
+        const hasDurationPricing = this.getAttribute('data-has-duration-pricing') === 'true';
+        const pricingOptions = this.getAttribute('data-pricing-options');
+        const imageUrl = this.getAttribute('data-image-url');
+        const isVisible = this.getAttribute('data-is-visible') === 'true';
+        
+        // Set form action
+        editForm.action = `/products/edit/${productId}`;
+        
+        // Set form values
+        document.getElementById('editProductId').value = productId;
+        document.getElementById('editProductName').value = productName;
+        document.getElementById('editProductPrice').value = productPrice;
+        
+        // Set rich text editor content
+        if (editRichTextEditor) {
+          if (productDescription && productDescription.trim()) {
+            editRichTextEditor.setContent(productDescription);
+          } else {
+            editRichTextEditor.clear();
+          }
+        }
+        
+        document.getElementById('editIsVisible').checked = isVisible;
+        
+        // Handle stock values for edit modal
+        const stockValues = this.getAttribute('data-stock-values') || '';
+        const stockDelimiter = this.getAttribute('data-stock-delimiter') || '|';
+        const infiniteStock = this.getAttribute('data-infinite-stock') === 'true';
+        document.getElementById('editStockValues').value = stockValues;
+        document.getElementById('editStockDelimiter').value = stockDelimiter;
+        document.getElementById('editInfiniteStock').checked = infiniteStock;
+        
+        // Trigger infinite stock toggle to update UI
+        if (infiniteStock) {
+          toggleEditInfiniteStock();
+        }
+        
+        calculateEditStock(); // Calculate and display stock count
+        updateEditDelimiterExample(); // Update delimiter example
+        
+        document.getElementById('editProductCategory').value = productCategory;
+        
+        // Show current image if exists
+        const imagePreview = document.getElementById('currentImagePreview');
+        if (imageUrl) {
+          imagePreview.innerHTML = `<img src="${imageUrl}" alt="${productName}" class="h-16 w-16 object-cover rounded">`;
+        } else {
+          imagePreview.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+          </svg>`;
+        }
+        
+        // Clear existing pricing options
+        editPricingOptionsContainer.innerHTML = '';
+        
+        // Add pricing options if available
+        if (hasDurationPricing && pricingOptions) {
+          try {
+            const options = JSON.parse(pricingOptions);
+            options.forEach(option => {
+              // Convert stock_values array to string using the delimiter
+              const stockValuesString = option.stock_values && Array.isArray(option.stock_values) 
+                ? option.stock_values.join(option.stock_delimiter || '|') 
+                : '';
+              
+              addEditPricingOptionRow(
+                option.id || '',
+                option.name || '',
+                option.price || '',
+                option.stock || '',
+                stockValuesString,
+                option.stock_delimiter || '|' // Assuming default delimiter for existing options
+              );
+            });
+          } catch (e) {
+            console.error('Error parsing pricing options:', e);
+          }
+        }
+        
+        // Update field status based on pricing options
+        updateEditStockFieldStatus();
+        
+        // Show modal
+        editModal.classList.remove('hidden');
+      });
+    });
+    
+    // File upload preview functionality for edit modal
+    const editFileInput = document.getElementById('editProductImage');
+    const editImagePreview = document.getElementById('currentImagePreview');
+    
+
+    
+    editFileInput.addEventListener('change', function(event) {
+      const file = event.target.files[0];
+      if (file) {
+        // Reset crop interface when new image is selected
+        if (editImageCropper) {
+          editImageCropper.resetCropInterface();
+        }
+        showEditImagePreview(file);
+      }
+    });
+
+    // Stock values functionality for edit modal
+    const editStockValuesTextarea = document.getElementById('editStockValues');
+    const editStockDelimiterSelect = document.getElementById('editStockDelimiter');
+    const editStockCountSpan = document.getElementById('editStockCount');
+    const editStockValidationSpan = document.getElementById('editStockValidation');
+    const editDelimiterExampleDiv = document.getElementById('editDelimiterExample');
+
+    // Toggle infinite stock mode for edit modal
+    function toggleEditInfiniteStock() {
+      const infiniteStock = document.getElementById('editInfiniteStock').checked;
+      const editStockValuesLabel = document.getElementById('editStockValuesLabel');
+      const editStockValues = document.getElementById('editStockValues');
+      const editStockDescription = document.getElementById('editStockDescription');
+      const editHowItWorksTitle = document.getElementById('editHowItWorksTitle');
+      const editDelimiterExample = document.getElementById('editDelimiterExample');
+      const editDelimiterSelect = document.getElementById('editStockDelimiter');
+      const editDelimiterContainer = editDelimiterSelect.parentElement.parentElement;
+      
+      if (infiniteStock) {
+        // Switch to infinite mode
+        editStockValuesLabel.textContent = 'Product Value (Infinite Stock)';
+        editStockValues.placeholder = 'Enter the single value that will be delivered to all customers (e.g., https://discord.gg/invite-link)';
+        editStockValues.rows = 2;
+        editHowItWorksTitle.textContent = 'Infinite Stock Mode:';
+        editDelimiterExample.textContent = 'https://discord.gg/your-group-link';
+        editStockDescription.textContent = 'This single value will be delivered to unlimited customers. Perfect for group links, download URLs, or access codes that can be shared infinitely.';
+        
+        // Blur and disable delimiter section
+        editDelimiterContainer.style.opacity = '0.4';
+        editDelimiterContainer.style.pointerEvents = 'none';
+        editDelimiterSelect.disabled = true;
+      } else {
+        // Switch to regular mode
+        editStockValuesLabel.textContent = 'Stock Values';
+        editStockValues.placeholder = 'Enter your product values...';
+        editStockValues.rows = 4;
+        editHowItWorksTitle.textContent = 'How it works:';
+        updateEditDelimiterExample(); // Restore delimiter-based example
+        editStockDescription.textContent = 'These values will be delivered to customers via email upon purchase. Stock count is automatically calculated from unique values.';
+        
+        // Restore delimiter section
+        editDelimiterContainer.style.opacity = '1';
+        editDelimiterContainer.style.pointerEvents = 'auto';
+        editDelimiterSelect.disabled = false;
+      }
+      
+      calculateEditStock();
+    }
+
+    function updateEditDelimiterExample() {
+      const delimiter = editStockDelimiterSelect.value;
+      let example = '';
+      if (delimiter === '|') {
+        example = 'ABCD1234 | user:pass | LICENSE123';
+      } else if (delimiter === ',') {
+        example = 'ABCD1234, user:pass, LICENSE123';
+      } else if (delimiter === 'newline') {
+        example = 'ABCD1234\nuser:pass\nLICENSE123';
+      }
+      editDelimiterExampleDiv.textContent = example;
+      
+      // Recalculate stock when delimiter changes
+      calculateEditStock();
+      
+      // Also recalculate stock for all pricing options
+      const optionTextareas = editPricingOptionsContainer.querySelectorAll('textarea[name="duration_stock_values[]"]');
+      optionTextareas.forEach(textarea => {
+        calculateEditOptionStock(textarea);
+      });
+    }
+
+    function calculateEditStock() {
+      const infiniteStock = document.getElementById('editInfiniteStock').checked;
+      const delimiter = editStockDelimiterSelect.value;
+      const stockValues = editStockValuesTextarea.value.trim();
+      editStockValidationSpan.textContent = '';
+      editStockValidationSpan.classList.add('hidden');
+
+      // Handle infinite stock mode
+      if (infiniteStock) {
+        if (!stockValues) {
+          editStockCountSpan.textContent = '(Infinite: Need 1 value)';
+          editStockValidationSpan.textContent = 'Enter 1 value for infinite stock';
+          editStockValidationSpan.className = 'text-xs px-2 py-1 rounded-full bg-yellow-500/20 text-yellow-400';
+          editStockValidationSpan.classList.remove('hidden');
+          return 0;
+        } else {
+          editStockCountSpan.textContent = '(Stock: ∞)';
+          editStockValidationSpan.textContent = '∞ Infinite stock enabled';
+          editStockValidationSpan.className = 'text-xs px-2 py-1 rounded-full bg-purple-500/20 text-purple-400';
+          editStockValidationSpan.classList.remove('hidden');
+          return 999999;
+        }
+      }
+
+      if (stockValues === '') {
+        editStockCountSpan.textContent = '(Stock: 0)';
+        return 0;
+      }
+
+      let values = [];
+      if (delimiter === 'newline') {
+        values = stockValues.split('\n').filter(v => v.trim());
+      } else {
+        values = stockValues.split(delimiter).filter(v => v.trim());
+      }
+
+      // Remove duplicates to ensure unique values only
+      const uniqueValues = [...new Set(values)];
+      const count = uniqueValues.length;
+      const duplicateCount = values.length - uniqueValues.length;
+
+      editStockCountSpan.textContent = `(Stock: ${count})`;
+
+      // Show validation with duplicate warning if applicable
+      if (count > 0) {
+        if (duplicateCount > 0) {
+          editStockValidationSpan.textContent = `✓ ${count} unique items (${duplicateCount} duplicates removed)`;
+          editStockValidationSpan.className = 'text-xs px-2 py-1 rounded-full bg-orange-500/20 text-orange-400';
+        } else {
+          editStockValidationSpan.textContent = `✓ ${count} unique items`;
+          editStockValidationSpan.className = 'text-xs px-2 py-1 rounded-full bg-green-500/20 text-green-400';
+        }
+      } else {
+        editStockValidationSpan.textContent = 'Empty';
+        editStockValidationSpan.className = 'text-xs px-2 py-1 rounded-full bg-yellow-500/20 text-yellow-400';
+      }
+      editStockValidationSpan.classList.remove('hidden');
+
+      return count;
+    }
+
+    // Function to calculate stock for individual options
+    function calculateEditOptionStock(textarea) {
+      const stockValues = textarea.value.trim();
+      const delimiter = document.getElementById('editStockDelimiter').value;
+      const stockCountSpan = textarea.parentElement.parentElement.querySelector('.option-stock-count');
+      const stockValidationSpan = textarea.parentElement.parentElement.querySelector('.option-stock-validation');
+      
+      if (!stockValues) {
+        if (stockCountSpan) stockCountSpan.textContent = '(Stock: 0)';
+        if (stockValidationSpan) stockValidationSpan.classList.add('hidden');
+        return 0;
+      }
+      
+      let values = [];
+      if (delimiter === 'newline') {
+        values = stockValues.split('\n').filter(v => v.trim());
+      } else {
+        values = stockValues.split(delimiter).filter(v => v.trim());
+      }
+      
+      const uniqueValues = [...new Set(values)];
+      const count = uniqueValues.length;
+      const duplicateCount = values.length - uniqueValues.length;
+      
+      if (stockCountSpan) stockCountSpan.textContent = `(Stock: ${count})`;
+      
+      if (stockValidationSpan) {
+        if (count > 0) {
+          if (duplicateCount > 0) {
+            stockValidationSpan.textContent = `✓ ${count} unique items (${duplicateCount} duplicates removed)`;
+            stockValidationSpan.className = 'option-stock-validation text-xs px-2 py-1 rounded-full bg-orange-500/20 text-orange-400';
+          } else {
+            stockValidationSpan.textContent = `✓ ${count} unique items`;
+            stockValidationSpan.className = 'option-stock-validation text-xs px-2 py-1 rounded-full bg-green-500/20 text-green-400';
+          }
+        } else {
+          stockValidationSpan.textContent = 'Empty';
+          stockValidationSpan.className = 'option-stock-validation text-xs px-2 py-1 rounded-full bg-yellow-500/20 text-yellow-400';
+        }
+        stockValidationSpan.classList.remove('hidden');
+      }
+      
+      return count;
+    }
+
+    // Function to update field visibility based on pricing options
+    function updateEditStockFieldStatus() {
+      const hasPricingOptions = editPricingOptionsContainer.children.length > 0;
+      const defaultPriceContainer = document.getElementById('editDefaultPriceContainer');
+      const stockValuesSection = document.getElementById('editStockValuesSection');
+      
+      if (hasPricingOptions) {
+        // Hide default price and stock values when there are pricing options
+        defaultPriceContainer.style.display = 'none';
+        stockValuesSection.style.display = 'none';
+        
+        // Make default price not required
+        document.getElementById('editProductPrice').removeAttribute('required');
+      } else {
+        // Show default price and stock values when no pricing options
+        defaultPriceContainer.style.display = 'block';
+        stockValuesSection.style.display = 'block';
+        
+        // Make default price required again
+        document.getElementById('editProductPrice').setAttribute('required', '');
+      }
+    }
+    
+    // Make functions available globally for inline events
+    window.calculateEditOptionStock = calculateEditOptionStock;
+    window.updateEditDelimiterExample = updateEditDelimiterExample;
+    window.calculateEditStock = calculateEditStock;
+    window.toggleEditInfiniteStock = toggleEditInfiniteStock;
+
+    // Initial call to set the example
+    updateEditDelimiterExample();
+    calculateEditStock(); // Calculate stock on page load
+
+    // Close modal handlers
+    closeEditModalBtn.addEventListener('click', function() {
+      editModal.classList.add('hidden');
+    });
+    
+    cancelEditBtn.addEventListener('click', function() {
+      editModal.classList.add('hidden');
+    });
+    
+    // Quick visibility toggle functionality
+    const toggleVisibilityButtons = document.querySelectorAll('.quick-toggle-visibility');
+    
+    toggleVisibilityButtons.forEach(button => {
+      button.addEventListener('click', function() {
+        const productId = this.getAttribute('data-id');
+        const action = this.getAttribute('data-action');
+        const isVisible = action === 'show';
+        
+        // Create a form and submit it
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `/products/edit/${productId}`;
+        
+        // Get the current product data to maintain other fields
+        const row = this.closest('tr');
+        const editBtn = row.querySelector('.edit-product-btn');
+        
+        // Add all the current product data as hidden fields
+        const fields = {
+          productName: editBtn.getAttribute('data-name'),
+          productPrice: editBtn.getAttribute('data-price'),
+          productDescription: editBtn.getAttribute('data-description'),
+          productCategory: editBtn.getAttribute('data-category'),
+          stockValues: editBtn.getAttribute('data-stock-values') || '',
+          stockDelimiter: editBtn.getAttribute('data-stock-delimiter'),
+          infiniteStock: editBtn.getAttribute('data-infinite-stock') === 'true' ? 'on' : '',
+          isVisible: isVisible ? 'on' : ''
+        };
+        
+        // Handle pricing options if they exist
+        const pricingOptions = editBtn.getAttribute('data-pricing-options');
+        if (pricingOptions && pricingOptions !== '[]') {
+          try {
+            const options = JSON.parse(pricingOptions);
+            options.forEach((option, index) => {
+              const nameField = document.createElement('input');
+              nameField.type = 'hidden';
+              nameField.name = 'duration_name[]';
+              nameField.value = option.name || '';
+              form.appendChild(nameField);
+              
+              const priceField = document.createElement('input');
+              priceField.type = 'hidden';
+              priceField.name = 'duration_price[]';
+              priceField.value = option.price || '';
+              form.appendChild(priceField);
+              
+              const stockField = document.createElement('input');
+              stockField.type = 'hidden';
+              stockField.name = 'duration_stock_values[]';
+              stockField.value = option.stock_values ? option.stock_values.join(option.stock_delimiter || '|') : '';
+              form.appendChild(stockField);
+            });
+          } catch (e) {
+            console.error('Error parsing pricing options:', e);
+          }
+        }
+        
+        // Add all other fields
+        Object.keys(fields).forEach(key => {
+          if (fields[key] !== '') {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = key;
+            input.value = fields[key];
+            form.appendChild(input);
+          }
+        });
+        
+        document.body.appendChild(form);
+        form.submit();
+      });
+    });
+    
+    // Delete Product Modal
+    const deleteModal = document.getElementById('deleteProductModal');
+    const deleteButtons = document.querySelectorAll('.delete-product-btn');
+    const closeDeleteModal = document.getElementById('closeDeleteModal');
+    const cancelDeleteBtn = document.getElementById('cancelDeleteProduct');
+    const deleteForm = document.getElementById('deleteProductForm');
+    
+    deleteButtons.forEach(button => {
+      button.addEventListener('click', function() {
+        const productId = this.dataset.id;
+        document.getElementById('deleteProductId').value = productId;
+        deleteForm.action = `/products/delete/${productId}`;
+        deleteModal.classList.remove('hidden');
+      });
+    });
+    
+    closeDeleteModal.addEventListener('click', function() {
+      deleteModal.classList.add('hidden');
+    });
+    
+    cancelDeleteBtn.addEventListener('click', function() {
+      deleteModal.classList.add('hidden');
+    });
+    
+    // Search and Filter Functionality
+    const searchInput = document.getElementById('searchProducts');
+    const categoryFilter = document.getElementById('categoryFilter');
+    
+    function updateURL() {
+      const searchValue = searchInput.value.trim();
+      const categoryValue = categoryFilter.value;
+      const currentUrl = new URL(window.location);
+      
+      // Update search parameter
+      if (searchValue) {
+        currentUrl.searchParams.set('search', searchValue);
+      } else {
+        currentUrl.searchParams.delete('search');
+      }
+      
+      // Update category parameter
+      if (categoryValue) {
+        currentUrl.searchParams.set('category', categoryValue);
+      } else {
+        currentUrl.searchParams.delete('category');
+      }
+      
+      // Reset to page 1 when filtering
+      currentUrl.searchParams.delete('page');
+      
+      window.location.href = currentUrl.toString();
+    }
+    
+    // Debounce function to limit API calls
+    let searchTimeout;
+    searchInput.addEventListener('input', function() {
+      clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(updateURL, 500);
+    });
+    
+    categoryFilter.addEventListener('change', function() {
+      updateURL();
+    });
+  });
+</script>
+
+
+{% endblock %} 

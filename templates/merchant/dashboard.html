@@ -1,0 +1,411 @@
+{% extends "_base/base.html" %}
+{% block title %}Enterprise Dashboard | ShopsyPro{% endblock %}
+{% block content %}    
+<section id="dashboard" class="min-h-screen p-4 sm:p-6 md:p-8 bg-gradient-to-b from-gray-900 to-slate-800 text-slate-300">
+    <div class="mb-6 sm:mb-8">
+      <h2 class="text-2xl sm:text-3xl font-bold text-slate-100 mb-2">Dashboard</h2>
+      <p class="text-slate-400 text-sm sm:text-base">Welcome back. Here's an overview of your business performance.</p>
+    </div>
+  
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8 sm:mb-10">
+      <div class="bg-slate-800/80 rounded-xl p-5 border border-slate-700 transition-all duration-300 hover:border-slate-600 hover:bg-slate-700/60">
+        <div class="flex justify-between items-start">
+          <div>
+            <p class="text-slate-400 text-sm">Total Revenue</p>
+            <h3 class="text-2xl sm:text-3xl font-bold text-slate-50 mt-2">${{ "%.2f"|format(total_revenue or 0) }}</h3>
+            <p class="text-green-500 text-xs sm:text-sm mt-2 flex items-center">
+              <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+              </svg>
+              <span>vs Previous Period</span>
+            </p>
+          </div>
+          <div class="bg-slate-900/70 p-3 rounded-lg">
+            <svg class="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+          </div>
+        </div>
+      </div>
+  
+      <div class="bg-slate-800/80 rounded-xl p-5 border border-slate-700 transition-all duration-300 hover:border-slate-600 hover:bg-slate-700/60">
+        <div class="flex justify-between items-start">
+          <div>
+            <p class="text-slate-400 text-sm">Total Orders</p>
+            <h3 class="text-2xl sm:text-3xl font-bold text-slate-50 mt-2">{{ orders_count }}</h3>
+            <p class="text-blue-500 text-xs sm:text-sm mt-2 flex items-center">
+              <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+              </svg>
+              <span>All-time orders</span>
+            </p>
+          </div>
+          <div class="bg-slate-900/70 p-3 rounded-lg">
+            <svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+            </svg>
+          </div>
+        </div>
+      </div>
+  
+      <div class="bg-slate-800/80 rounded-xl p-5 border border-slate-700 transition-all duration-300 hover:border-slate-600 hover:bg-slate-700/60">
+        <div class="flex justify-between items-start">
+          <div>
+            <p class="text-slate-400 text-sm">Products</p>
+            <h3 class="text-2xl sm:text-3xl font-bold text-slate-50 mt-2">
+              <span class="text-green-400">{{ products_count - out_of_stock_count }}</span>
+              <span class="text-slate-500">/</span> 
+              <span class="text-slate-300">{{ products_count }}</span>
+            </h3>
+            <p class="text-purple-500 text-xs sm:text-sm mt-2 flex items-center">
+              <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+              <span>In Stock / Total</span>
+            </p>
+          </div>
+          <div class="bg-slate-900/70 p-3 rounded-lg">
+            <svg class="w-6 h-6 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-slate-800/80 rounded-xl p-5 border border-slate-700 transition-all duration-300 hover:border-slate-600 hover:bg-slate-700/60">
+        <div class="flex justify-between items-start">
+          <div>
+            <p class="text-slate-400 text-sm">Coupons</p>
+            <h3 class="text-2xl sm:text-3xl font-bold text-slate-50 mt-2">
+              <span class="text-green-400">{{ active_coupons }}</span> 
+              <span class="text-slate-500">/</span> 
+              <span class="text-red-400">{{ expired_coupons }}</span>
+            </h3>
+            <p class="text-yellow-500 text-xs sm:text-sm mt-2 flex items-center">
+              <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"></path></svg>
+              <span>Active / Expired</span>
+            </p>
+          </div>
+          <div class="bg-slate-900/70 p-3 rounded-lg">
+            <svg class="w-6 h-6 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"></path>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+  
+    <div class="bg-slate-800/80 rounded-xl p-5 sm:p-6 border border-slate-700 mb-8 sm:mb-10">
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
+        <h3 class="text-lg font-semibold text-slate-100 mb-3 sm:mb-0">Revenue Overview</h3>
+        <div class="flex items-center bg-slate-900/70 rounded-lg p-1">
+          <button id="weeklyBtn" class="px-3 py-1 text-sm rounded-md transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-slate-800">Weekly</button>
+          <button id="monthlyBtn" class="px-3 py-1 text-sm rounded-md transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-slate-800">Monthly</button>
+          <button id="yearlyBtn" class="px-3 py-1 text-sm rounded-md transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-slate-800">Yearly</button>
+        </div>
+      </div>
+      <div class="h-80 w-full">
+        <canvas id="revenueChart"></canvas>
+      </div>
+    </div>
+  
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8 sm:mb-10">
+        {% macro quickAccessCard(title, description, href, icon_path, color) %}
+        <a href="{{ href }}" class="group bg-slate-800/80 rounded-xl p-6 border border-slate-700 transition-all duration-300 hover:border-slate-600 hover:bg-slate-700/60 hover:-translate-y-1 block">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold text-slate-100">{{ title }}</h3>
+                <svg class="w-6 h-6 text-{{ color }}-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ icon_path }}"></path>
+                </svg>
+            </div>
+            <p class="text-slate-400 mb-6 text-sm">{{ description }}</p>
+            <span class="inline-flex items-center font-semibold text-sm text-{{ color }}-400 group-hover:text-{{ color }}-300">
+                Go to {{ title }}
+                <svg class="w-4 h-4 ml-2 transition-transform duration-300 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                </svg>
+            </span>
+        </a>
+        {% endmacro %}
+  
+        {{ quickAccessCard('Manage Products', 'Add, edit or remove products from your inventory.', '/products', 'M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4', 'purple') }}
+        {{ quickAccessCard('Manage Coupons', 'Create and manage discount coupons.', '/coupons', 'M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z', 'yellow') }}
+        {{ quickAccessCard('Payment Settings', 'Configure your crypto payment addresses.', '/payment-settings', 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z', 'green') }}
+        {{ quickAccessCard('My Shop', 'View your shop as customers see it.', '/myshop', 'M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z', 'blue') }}
+        {{ quickAccessCard('Support Tickets', 'View and respond to customer requests.', '/support/tickets', 'M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8s-9-3.582-9-8 4.03-8 9-8 9 3.582 9 8z', 'orange') }}
+    </div>
+
+    <div class="bg-slate-800/80 rounded-xl p-5 sm:p-6 border border-slate-700">
+      <div class="flex justify-between items-center mb-6">
+        <h3 class="text-lg font-semibold text-slate-100">Recent Activity</h3>
+        <button id="refreshActivity" class="text-sm text-slate-400 hover:text-white transition-colors flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h5M20 20v-5h-5M4 4l1.5 1.5A9 9 0 0120.5 16l-1.5-1.5"></path><path stroke-linecap="round" stroke-linejoin="round" d="M20 20l-1.5-1.5A9 9 0 003.5 8l1.5 1.5"></path></svg>
+            Refresh
+        </button>
+      </div>
+      <div id="activity-container" class="relative pl-6 space-y-6 border-l border-slate-700">
+        {% if recent_activities %}
+          {% for activity in recent_activities[:4] %}
+            <div class="relative">
+              <div class="absolute -left-[30.5px] top-1 flex items-center justify-center w-5 h-5 bg-{{ activity.action_type|activity_color }}-500/20 rounded-full ring-4 ring-slate-800">
+                <svg class="w-4 h-4 text-{{ activity.action_type|activity_color }}-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="{{ activity.item_type|activity_icon }}"></path>
+                </svg>
+              </div>
+              <div>
+                <p class="text-slate-100 font-medium text-sm">{{ activity.action_type|title }} {{ activity.item_type }}</p>
+                <p class="text-slate-400 text-sm mt-0.5">{{ activity.details or "No details provided" }}</p>
+                <p class="text-slate-500 text-xs mt-1">{{ activity.timestamp|time_ago }}</p>
+              </div>
+            </div>
+          {% endfor %}
+        {% else %}
+          <div class="relative">
+             <div class="absolute -left-[30.5px] top-1 flex items-center justify-center w-5 h-5 bg-gray-500/20 rounded-full ring-4 ring-slate-800">
+                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+             </div>
+             <p class="text-slate-400 text-sm">No recent activity found.</p>
+          </div>
+        {% endif %}
+      </div>
+      <div class="mt-8 text-center">
+        <a href="{{ url_for('dashboard.activity_history') }}" class="inline-flex items-center px-4 py-2 bg-slate-700/70 text-slate-300 rounded-lg hover:bg-slate-700 transition-colors text-sm font-medium">
+          View Full History
+          <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+          </svg>
+        </a>
+      </div>
+    </div>
+  </section>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // --- CHART LOGIC ---
+      const chartButtons = {
+        weekly: document.getElementById('weeklyBtn'),
+        monthly: document.getElementById('monthlyBtn'),
+        yearly: document.getElementById('yearlyBtn'),
+      };
+      let revenueChart;
+      let currentPeriod = 'weekly';
+
+      function setActiveButton(period) {
+        Object.values(chartButtons).forEach(btn => {
+            btn.classList.remove('bg-slate-700', 'text-white');
+            btn.classList.add('text-slate-400', 'hover:bg-slate-700/50');
+        });
+        chartButtons[period].classList.add('bg-slate-700', 'text-white');
+        chartButtons[period].classList.remove('hover:bg-slate-700/50', 'text-slate-400');
+      }
+      
+      function fetchRevenue(days) {
+        fetch(`/api/revenue/${days}`)
+          .then(response => response.json())
+          .then(data => {
+            let labels = [];
+            let values = [];
+            let skipLabels = [];
+            let tooltipLabels = [];
+            
+            if (data.revenue_data && data.revenue_data.length > 0) {
+              values = data.revenue_data.map(item => parseFloat(item.total));
+              const dates = data.revenue_data.map(item => new Date(item.date));
+
+              if (days === 7) {
+                const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+                labels = dates.map(d => dayNames[d.getUTCDay()]);
+                tooltipLabels = dates.map(d => d.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' }));
+                skipLabels = Array(7).fill(false);
+              } else if (days === 30) {
+                labels = dates.map(d => d.getUTCDate());
+                tooltipLabels = dates.map(d => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }));
+                skipLabels = labels.map((_, i) => i % 5 !== 0 && i !== 0);
+              } else { // 365 days
+                const monthlyData = {};
+                const monthYearLabels = [];
+                const currentDate = new Date();
+                
+                for (let i = 11; i >= 0; i--) {
+                  let d = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1);
+                  let label = d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+                  monthYearLabels.push(label);
+                  monthlyData[label] = 0;
+                }
+
+                data.revenue_data.forEach(item => {
+                  const date = new Date(item.date);
+                  const label = date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+                  if (monthlyData.hasOwnProperty(label)) {
+                    monthlyData[label] += parseFloat(item.total);
+                  }
+                });
+                
+                labels = monthYearLabels.map(l => l.split(' ')[0]);
+                values = Object.values(monthlyData);
+                tooltipLabels = monthYearLabels;
+                skipLabels = labels.map((_, i) => i % 2 !== 0);
+              }
+
+              updateRevenueChart(labels, values, skipLabels, tooltipLabels);
+            } else {
+                // If no data, display an empty chart for the selected period
+                const numPoints = days === 7 ? 7 : (days === 30 ? 30 : 12);
+                updateRevenueChart(Array(numPoints).fill(''), Array(numPoints).fill(0), [], []);
+            }
+          })
+          .catch(error => {
+            console.error('Error fetching revenue data:', error);
+          });
+      }
+      
+      function updateRevenueChart(labels, data, skipLabels, tooltipLabels) {
+        const ctx = document.getElementById('revenueChart').getContext('2d');
+        const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+        gradient.addColorStop(0, 'rgba(124, 58, 237, 0.3)');
+        gradient.addColorStop(1, 'rgba(124, 58, 237, 0)');
+
+        const chartData = {
+          labels: labels,
+          datasets: [{
+            label: 'Revenue',
+            data: data,
+            backgroundColor: gradient,
+            borderColor: 'rgba(167, 139, 250, 1)',
+            borderWidth: 2,
+            tension: 0.4,
+            fill: true,
+            pointBackgroundColor: 'rgba(167, 139, 250, 1)',
+            pointBorderColor: '#fff',
+            pointHoverBackgroundColor: '#fff',
+            pointHoverBorderColor: 'rgba(167, 139, 250, 1)',
+            pointRadius: 0,
+            pointHoverRadius: 6,
+            tooltipLabels: tooltipLabels // Custom property for tooltips
+          }]
+        };
+
+        const chartOptions = {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              enabled: true,
+              backgroundColor: 'rgba(17, 24, 39, 0.9)',
+              titleColor: '#fff',
+              bodyColor: '#e5e7eb',
+              borderColor: 'rgba(75, 85, 99, 0.5)',
+              borderWidth: 1,
+              displayColors: false,
+              padding: 12,
+              callbacks: {
+                title: (context) => context[0].dataset.tooltipLabels[context[0].dataIndex] || context[0].label,
+                label: (context) => `$${context.raw.toFixed(2)}`,
+              }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              grid: { color: 'rgba(255, 255, 255, 0.05)' },
+              ticks: {
+                color: 'rgba(156, 163, 175, 1)',
+                callback: (value) => '$' + value,
+                padding: 10,
+              },
+              border: { display: false },
+            },
+            x: {
+              grid: { display: false },
+              ticks: {
+                color: 'rgba(156, 163, 175, 1)',
+                callback: (val, index) => skipLabels[index] ? '' : labels[index],
+                padding: 10,
+              },
+              border: { color: 'rgba(255, 255, 255, 0.05)' },
+            }
+          }
+        };
+
+        if (revenueChart) {
+          revenueChart.data = chartData;
+          revenueChart.options = chartOptions;
+          revenueChart.update();
+        } else {
+          revenueChart = new Chart(ctx, { type: 'line', data: chartData, options: chartOptions });
+        }
+      }
+      
+      // --- ACTIVITY LOGIC ---
+      function fetchActivity() {
+        fetch('/api/activity')
+          .then(response => response.json())
+          .then(data => {
+            const container = document.getElementById('activity-container');
+            container.innerHTML = ''; // Clear existing content
+            
+            if (data.activities && data.activities.length > 0) {
+              data.activities.slice(0, 4).forEach(activity => {
+                const colorMap = { create: 'green', update: 'yellow', delete: 'red', order: 'blue' };
+                const color = colorMap[activity.action_type] || 'purple';
+                const iconPath = getActivityIcon(activity.item_type);
+                const timeAgo = formatTimeAgo(activity.timestamp);
+                
+                const itemHTML = `
+                <div class="relative">
+                  <div class="absolute -left-[30.5px] top-1 flex items-center justify-center w-5 h-5 bg-${color}-500/20 rounded-full ring-4 ring-slate-800">
+                    <svg class="w-4 h-4 text-${color}-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="${iconPath}"></path>
+                    </svg>
+                  </div>
+                  <div>
+                    <p class="text-slate-100 font-medium text-sm">${activity.action_type.charAt(0).toUpperCase() + activity.action_type.slice(1)} ${activity.item_type}</p>
+                    <p class="text-slate-400 text-sm mt-0.5">${activity.details || "No details provided"}</p>
+                    <p class="text-slate-500 text-xs mt-1">${timeAgo}</p>
+                  </div>
+                </div>`;
+                container.insertAdjacentHTML('beforeend', itemHTML);
+              });
+            } else {
+              container.innerHTML = '<div class="relative"><div class="absolute -left-[30.5px] top-1 flex items-center justify-center w-5 h-5 bg-gray-500/20 rounded-full ring-4 ring-slate-800"><svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></div><p class="text-slate-400 text-sm">No recent activity found.</p></div>';
+            }
+          })
+          .catch(error => console.error('Error fetching activity data:', error));
+      }
+
+      function getActivityIcon(itemType) {
+        const icons = {
+          product: 'M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4',
+          coupon: 'M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z',
+          order: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z',
+          category: 'M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z'
+        };
+        return icons[itemType] || 'M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z';
+      }
+
+      function formatTimeAgo(timestamp) {
+          const now = new Date();
+          const past = new Date(timestamp);
+          const diffInSeconds = Math.floor((now - past) / 1000);
+          const minutes = Math.floor(diffInSeconds / 60);
+          const hours = Math.floor(minutes / 60);
+          const days = Math.floor(hours / 24);
+
+          if (days > 0) return `${days} day${days > 1 ? 's' : ''} ago`;
+          if (hours > 0) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+          if (minutes > 0) return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
+          return 'Just now';
+      }
+
+      // --- INITIALIZATION ---
+      chartButtons.weekly.addEventListener('click', () => { currentPeriod = 'weekly'; setActiveButton(currentPeriod); fetchRevenue(7); });
+      chartButtons.monthly.addEventListener('click', () => { currentPeriod = 'monthly'; setActiveButton(currentPeriod); fetchRevenue(30); });
+      chartButtons.yearly.addEventListener('click', () => { currentPeriod = 'yearly'; setActiveButton(currentPeriod); fetchRevenue(365); });
+      document.getElementById('refreshActivity').addEventListener('click', fetchActivity);
+      
+      // Initial Load
+      setActiveButton('weekly');
+      fetchRevenue(7);
+    });
+  </script>
+
+{% endblock %}

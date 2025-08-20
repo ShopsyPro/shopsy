@@ -1,0 +1,177 @@
+{% extends "superadmin/base.html" %}
+
+{% block title %}{{ shop.name }} - Super Admin{% endblock %}
+
+{% block content %}
+<div x-data="{ banModalOpen: false, unbanModalOpen: false, deleteModalOpen: false }" @keydown.escape.window="banModalOpen = false; unbanModalOpen = false; deleteModalOpen = false">
+    <div class="mb-6">
+        <nav class="text-sm text-slate-400 mb-2" aria-label="Breadcrumb">
+            <ol class="list-none p-0 inline-flex">
+                <li class="flex items-center"><a href="{{ url_for('superadmin.merchants') }}" class="hover:text-blue-400 transition-colors">Merchants</a></li>
+                <li class="flex items-center mx-2"><i class="fas fa-chevron-right text-xs"></i></li>
+                <li class="text-slate-200">{{ shop.name }}</li>
+            </ol>
+        </nav>
+        
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <h1 class="text-3xl font-bold text-slate-100 flex items-center">{{ shop.name }}</h1>
+            <div class="flex items-center gap-2 flex-wrap">
+                {% if shop.banned %}
+                    <button @click="unbanModalOpen = true" class="px-3 py-1.5 text-sm font-semibold text-white bg-green-600 rounded-lg hover:bg-green-700 transition"><i class="fas fa-unlock mr-1"></i> Unban Shop</button>
+                {% else %}
+                    <button @click="banModalOpen = true" class="px-3 py-1.5 text-sm font-semibold text-white bg-yellow-600 rounded-lg hover:bg-yellow-700 transition"><i class="fas fa-ban mr-1"></i> Ban Shop</button>
+                {% endif %}
+                <button @click="deleteModalOpen = true" class="px-3 py-1.5 text-sm font-semibold text-white bg-red-600 rounded-lg hover:bg-red-700 transition"><i class="fas fa-trash mr-1"></i> Delete Shop</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+        <div class="bg-slate-800/80 p-5 rounded-xl border border-slate-700"><p class="text-sm text-slate-400">Total Orders</p><p class="text-3xl font-bold text-slate-100 mt-1">{{ "{:,}".format(total_orders or 0) }}</p></div>
+        <div class="bg-slate-800/80 p-5 rounded-xl border border-slate-700"><p class="text-sm text-slate-400">Total Revenue</p><p class="text-3xl font-bold text-green-400 mt-1">${{ "{:,.2f}".format(total_revenue or 0) }}</p></div>
+        <div class="bg-slate-800/80 p-5 rounded-xl border border-slate-700"><p class="text-sm text-slate-400">Products</p><p class="text-3xl font-bold text-slate-100 mt-1">{{ products_count or 0 }}</p></div>
+        <div class="bg-slate-800/80 p-5 rounded-xl border border-slate-700"><p class="text-sm text-slate-400">Completed Orders</p><p class="text-3xl font-bold text-slate-100 mt-1">{{ completed_orders or 0 }}</p></div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+        <div class="lg:col-span-2 bg-slate-800/80 p-6 rounded-xl border border-slate-700">
+            <h3 class="text-lg font-semibold text-slate-100 mb-4">Merchant Information</h3>
+            <div class="space-y-4 text-sm">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div><p class="text-slate-400">Shop Name</p><p class="text-slate-200 font-medium">{{ shop.name }}</p></div>
+                    <div><p class="text-slate-400">Owner Username</p><p class="text-slate-200 font-medium">@{{ shop.owner.username }}</p></div>
+                    <div><p class="text-slate-400">Owner Email</p><p class="text-slate-200 font-medium">{{ shop.owner.email }}</p></div>
+                    <div><p class="text-slate-400">Created On</p><p class="text-slate-200 font-medium">{{ shop.created_at.strftime('%b %d, %Y') }}</p></div>
+                </div>
+                {% if shop.description %}
+                <div class="pt-2"><p class="text-slate-400">Description</p><p class="text-slate-300 mt-1">{{ shop.description }}</p></div>
+                {% endif %}
+                {% if shop.banned %}
+                <div class="pt-2">
+                    <div class="p-4 rounded-lg border bg-red-500/10 border-red-500/30 text-red-300">
+                        <p class="font-bold mb-2">Shop is BANNED</p>
+                        <p class="text-xs"><strong>Reason:</strong> {{ shop.ban_reason }}</p>
+                        <p class="text-xs"><strong>Banned by:</strong> {{ shop.banned_by }} on {{ shop.banned_at.strftime('%b %d, %Y') }}</p>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="bg-slate-800/80 p-6 rounded-xl border border-slate-700">
+            <h3 class="text-lg font-semibold text-slate-100 mb-4">Shop Statistics</h3>
+            <div class="space-y-4 text-sm">
+                <div class="flex justify-between items-center"><p class="text-slate-300">Categories</p><p class="font-bold text-xl text-slate-100">{{ categories_count }}</p></div>
+                <div class="flex justify-between items-center"><p class="text-slate-300">Products</p><p class="font-bold text-xl text-slate-100">{{ products_count }}</p></div>
+                <div class="flex justify-between items-center"><p class="text-slate-300">Coupons</p><p class="font-bold text-xl text-slate-100">{{ coupons_count }}</p></div>
+                <hr class="border-slate-700">
+                <div class="flex justify-between items-center"><p class="text-slate-300">Avg. Order Value</p><p class="font-semibold text-green-400">${{ "{:.2f}".format(total_revenue / total_orders if total_orders > 0 else 0) }}</p></div>
+                <div class="flex justify-between items-center"><p class="text-slate-300">Completion Rate</p><p class="font-semibold text-green-400">{{ "{:.1f}%".format((completed_orders / total_orders * 100) if total_orders > 0 else 0) }}</p></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="bg-slate-800/80 p-6 rounded-xl border border-slate-700">
+            <h3 class="text-lg font-semibold text-slate-100 mb-4">Recent Orders</h3>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left text-slate-400">
+                    <thead class="text-xs text-slate-400 uppercase bg-slate-700/50"><tr><th class="px-4 py-3">Order ID</th><th class="px-4 py-3">Items</th><th class="px-4 py-3">Amount</th><th class="px-4 py-3">Status</th></tr></thead>
+                    <tbody>
+                        {% if recent_orders %}
+                            {% for order in recent_orders %}
+                            <tr class="border-b border-slate-700">
+                                <td class="px-4 py-3 font-mono text-xs">{{ order.order_id }}</td>
+                                <td class="px-4 py-3">
+                                    {% if order.items and order.items is iterable and order.items is not callable %}
+                                        {{ order.items|length }} item{{ 's' if order.items|length != 1 else '' }}
+                                    {% else %}
+                                        0 items
+                                    {% endif %}
+                                </td>
+                                <td class="px-4 py-3 text-green-400 font-semibold">${{ "{:.2f}".format(order.total_amount or 0) }}</td>
+                                <td class="px-4 py-3">
+                                    {% if order.status == 'completed' %}<span class="px-2 py-1 text-xs font-medium rounded-full bg-green-500/10 text-green-300">Completed</span>
+                                    {% elif order.status == 'pending' %}<span class="px-2 py-1 text-xs font-medium rounded-full bg-yellow-500/10 text-yellow-300">Pending</span>
+                                    {% else %}<span class="px-2 py-1 text-xs font-medium rounded-full bg-red-500/10 text-red-300">{{ order.status|title }}</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr><td colspan="4" class="px-4 py-4 text-center">No orders found.</td></tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="bg-slate-800/80 p-6 rounded-xl border border-slate-700">
+            <h3 class="text-lg font-semibold text-slate-100 mb-4">Recent Activities</h3>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left text-slate-400">
+                    <thead class="text-xs text-slate-400 uppercase bg-slate-700/50"><tr><th class="px-4 py-3">Action</th><th class="px-4 py-3">Details</th><th class="px-4 py-3">Time</th></tr></thead>
+                    <tbody>
+                        {% if recent_activities %}
+                            {% for activity in recent_activities %}
+                            <tr class="border-b border-slate-700">
+                                <td class="px-4 py-3">
+                                    {% if activity.action_type == 'create' %}<span class="px-2 py-1 text-xs font-medium rounded-full bg-green-500/10 text-green-300">Create</span>
+                                    {% elif activity.action_type == 'update' %}<span class="px-2 py-1 text-xs font-medium rounded-full bg-yellow-500/10 text-yellow-300">Update</span>
+                                    {% else %}<span class="px-2 py-1 text-xs font-medium rounded-full bg-red-500/10 text-red-300">{{ activity.action_type|title }}</span>
+                                    {% endif %}
+                                </td>
+                                <td class="px-4 py-3 text-slate-300">{{ activity.details }}</td>
+                                <td class="px-4 py-3">{{ activity.timestamp.strftime('%I:%M %p') }}</td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr><td colspan="3" class="px-4 py-4 text-center">No recent activities found.</td></tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div x-show="banModalOpen" x-transition.opacity.duration.300 class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4" style="display: none;">
+        <div @click.away="banModalOpen = false" class="bg-slate-900 rounded-xl border border-slate-700 shadow-2xl w-full max-w-md mx-auto">
+            <form action="{{ url_for('superadmin.ban_shop', shop_id=shop._id) }}" method="POST" class="p-8 space-y-4">
+                <h3 class="text-lg font-bold text-white">Ban Shop "{{ shop.name }}"</h3>
+                <div class="p-3 rounded-lg border bg-yellow-500/10 border-yellow-500/30 text-yellow-300 text-sm">This prevents the merchant from accessing their dashboard.</div>
+                <div><label for="ban_reason" class="text-sm font-medium text-slate-300">Ban Reason</label><textarea id="ban_reason" name="ban_reason" rows="2" class="mt-1 w-full p-2 bg-slate-800 border border-slate-600 rounded-lg" required></textarea></div>
+                <div><label for="superuser_password_ban" class="text-sm font-medium text-slate-300">Superuser Password</label><input type="password" id="superuser_password_ban" name="superuser_password" class="mt-1 w-full p-2 bg-slate-800 border border-slate-600 rounded-lg" required></div>
+                <div class="flex justify-end gap-3 pt-2">
+                    <button type="button" @click="banModalOpen = false" class="px-4 py-2 text-sm font-semibold text-slate-300 bg-slate-700/70 rounded-lg hover:bg-slate-700">Cancel</button>
+                    <button type="submit" class="px-4 py-2 text-sm font-semibold text-white bg-yellow-600 rounded-lg hover:bg-yellow-700">Confirm Ban</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div x-show="unbanModalOpen" x-transition.opacity.duration.300 class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4" style="display: none;">
+        <div @click.away="unbanModalOpen = false" class="bg-slate-900 rounded-xl border border-slate-700 shadow-2xl w-full max-w-md mx-auto">
+            <form action="{{ url_for('superadmin.unban_shop', shop_id=shop._id) }}" method="POST" class="p-8 space-y-4">
+                <h3 class="text-lg font-bold text-white">Unban Shop "{{ shop.name }}"</h3>
+                <div class="p-3 rounded-lg border bg-green-500/10 border-green-500/30 text-green-300 text-sm">This will restore the merchant's dashboard access.</div>
+                <div><label for="superuser_password_unban" class="text-sm font-medium text-slate-300">Superuser Password</label><input type="password" id="superuser_password_unban" name="superuser_password" class="mt-1 w-full p-2 bg-slate-800 border border-slate-600 rounded-lg" required></div>
+                <div class="flex justify-end gap-3 pt-2">
+                    <button type="button" @click="unbanModalOpen = false" class="px-4 py-2 text-sm font-semibold text-slate-300 bg-slate-700/70 rounded-lg hover:bg-slate-700">Cancel</button>
+                    <button type="submit" class="px-4 py-2 text-sm font-semibold text-white bg-green-600 rounded-lg hover:bg-green-700">Confirm Unban</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div x-show="deleteModalOpen" x-transition.opacity.duration.300 class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4" style="display: none;">
+        <div @click.away="deleteModalOpen = false" class="bg-slate-900 rounded-xl border border-slate-700 shadow-2xl w-full max-w-md mx-auto">
+            <form action="{{ url_for('superadmin.delete_shop', shop_id=shop._id) }}" method="POST" class="p-8 space-y-4">
+                <h3 class="text-lg font-bold text-white">Delete Shop "{{ shop.name }}"</h3>
+                <div class="p-3 rounded-lg border bg-red-500/10 border-red-500/30 text-red-300 text-sm">Warning: This action is irreversible and will delete all associated data.</div>
+                <div><label for="superuser_password" class="text-sm font-medium text-slate-300">Superuser Password</dlabel><input type="password" id="superuser_password" name="superuser_password" class="mt-1 w-full p-2 bg-slate-800 border border-slate-600 rounded-lg" required></div>
+                <div class="flex justify-end gap-3 pt-2">
+                    <button type="button" @click="deleteModalOpen = false" class="px-4 py-2 text-sm font-semibold text-slate-300 bg-slate-700/70 rounded-lg hover:bg-slate-700">Cancel</button>
+                    <button type="submit" class="px-4 py-2 text-sm font-semibold text-white bg-red-600 rounded-lg hover:bg-red-700">Confirm Deletion</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

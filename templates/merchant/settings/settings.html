@@ -1,0 +1,191 @@
+{% extends "_base/base.html" %}
+
+{% block title %}Settings | ShopsyPro{% endblock %}
+
+{% block content %}
+<section id="settings" class="min-h-screen p-4 sm:p-6 md:p-8 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+  <div class="max-w-4xl mx-auto">
+    <div class="mb-8">
+      <h1 class="text-3xl font-bold text-slate-100">Settings</h1>
+      <p class="text-slate-400 mt-1">Manage your account and shop configuration.</p>
+    </div>
+
+    <div class="space-y-8">
+      
+      <div class="bg-slate-800/80 rounded-xl border border-slate-700">
+        <div class="p-6 sm:p-8">
+          <div class="flex items-center mb-6">
+            <div class="bg-blue-500/10 p-3 rounded-lg border border-blue-500/20">
+              <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+            </div>
+            <h3 class="text-xl font-semibold text-slate-100 ml-4">Account Information</h3>
+          </div>
+
+          <form method="POST" action="{{ url_for('shop.update_settings') }}" enctype="multipart/form-data" class="space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label for="username" class="block text-sm font-medium text-slate-300 mb-2">Username</label>
+                <input type="text" id="username" value="{{ user.owner.username if user and user.owner else '' }}"
+                       class="w-full p-3 bg-slate-700/50 border border-slate-600 rounded-lg text-slate-400 cursor-not-allowed" 
+                       readonly disabled>
+                <p class="text-xs text-slate-500 mt-2">Username cannot be changed.</p>
+              </div>
+              
+              <div>
+                <label for="email" class="block text-sm font-medium text-slate-300 mb-2">Email Address</label>
+                <input type="email" id="email" name="email" value="{{ user.owner.email if user and user.owner else '' }}"
+                       class="w-full p-3 bg-slate-700/50 border border-slate-600 rounded-lg text-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+              </div>
+            </div>
+
+            <div>
+              <label for="email_password" class="block text-sm font-medium text-slate-300 mb-2">Current Password <span class="text-slate-500">(to change email)</span></label>
+              <input type="password" id="email_password" name="email_password" 
+                     class="w-full p-3 bg-slate-700/50 border border-slate-600 rounded-lg text-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" 
+                     placeholder="Enter password to confirm email change">
+            </div>
+
+            <div>
+              <label for="shop_name" class="block text-sm font-medium text-slate-300 mb-2">Shop Name</label>
+              <input type="text" id="shop_name" name="shop_name" value="{{ user.name if user else '' }}"
+                     class="w-full p-3 bg-slate-700/50 border border-slate-600 rounded-lg text-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+            </div>
+
+            <div>
+              <label for="shop_description" class="block text-sm font-medium text-slate-300 mb-2">Shop Description</label>
+              <textarea id="shop_description" name="shop_description" rows="4"
+                        class="w-full p-3 bg-slate-700/50 border border-slate-600 rounded-lg text-slate-200 resize-y focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                        placeholder="A brief description of your shop">{{ user.description if user else 'Welcome to our digital marketplace!' }}</textarea>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-slate-300 mb-2">Shop Avatar</label>
+              <div class="flex items-center gap-4">
+                <img src="{{ current_avatar_url }}" alt="Current avatar" class="h-16 w-16 rounded-full object-cover border-2 border-slate-600">
+                <input type="file" id="avatar" name="avatar" accept="image/png, image/jpeg, image/gif, image/webp"
+                       class="block w-full text-sm text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-500/10 file:text-blue-300 hover:file:bg-blue-500/20">
+              </div>
+              <div id="avatarValidationMessage" class="hidden mt-2 p-3 rounded-lg bg-red-900/30 border border-red-500/30 text-sm text-red-400"></div>
+            </div>
+
+            <div class="flex justify-end pt-4">
+              <button type="submit" class="px-6 py-2.5 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-900 focus:ring-blue-500 transition">
+                Save Changes
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div class="bg-slate-800/80 rounded-xl border border-slate-700">
+        <div class="p-6 sm:p-8">
+          <div class="flex items-center mb-6">
+            <div class="bg-red-500/10 p-3 rounded-lg border border-red-500/20">
+              <svg class="w-6 h-6 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+            </div>
+            <h3 class="text-xl font-semibold text-slate-100 ml-4">Change Password</h3>
+          </div>
+
+          <form method="POST" action="{{ url_for('shop.update_settings') }}" class="space-y-6">
+            <div>
+              <label for="current_password" class="block text-sm font-medium text-slate-300 mb-2">Current Password</label>
+              <input type="password" id="current_password" name="current_password" 
+                     class="w-full p-3 bg-slate-700/50 border border-slate-600 rounded-lg text-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" 
+                     placeholder="Enter current password">
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label for="new_password" class="block text-sm font-medium text-slate-300 mb-2">New Password</label>
+                <input type="password" id="new_password" name="new_password" 
+                       class="w-full p-3 bg-slate-700/50 border border-slate-600 rounded-lg text-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" 
+                       placeholder="Enter new password">
+              </div>
+              
+              <div>
+                <label for="confirm_password" class="block text-sm font-medium text-slate-300 mb-2">Confirm New Password</label>
+                <input type="password" id="confirm_password" name="confirm_password" 
+                       class="w-full p-3 bg-slate-700/50 border border-slate-600 rounded-lg text-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" 
+                       placeholder="Confirm new password">
+              </div>
+            </div>
+
+            <div class="flex justify-end pt-4">
+              <button type="submit" class="px-6 py-2.5 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-900 focus:ring-red-500 transition">
+                Change Password
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+      
+       <div class="bg-slate-800/80 rounded-xl border border-slate-700">
+        <div class="p-6 sm:p-8">
+            <div class="flex items-center mb-6">
+                 <div class="bg-slate-500/10 p-3 rounded-lg border border-slate-500/20">
+                    <svg class="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                </div>
+                <h3 class="text-xl font-semibold text-slate-100 ml-4">Account Information</h3>
+            </div>
+            <div class="space-y-4">
+                <div class="p-4 rounded-lg bg-slate-700/50 flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-slate-400">Account Created</p>
+                        <p class="text-slate-200 font-medium">{{ user.created_at.strftime('%B %d, %Y') if user and user.created_at else 'N/A' }}</p>
+                    </div>
+                    <div class="w-2 h-2 bg-green-500 rounded-full shrink-0 ml-4"></div>
+                </div>
+                <div class="p-4 rounded-lg bg-slate-700/50 flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-slate-400">Last Login</p>
+                        <p class="text-slate-200 font-medium">
+                            {% if user and user.login_tracking and user.login_tracking.last_login %}
+                                {{ user.login_tracking.last_login.strftime('%B %d, %Y at %I:%M %p') }}
+                            {% else %}
+                                Never logged in
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="w-2 h-2 {% if user and user.login_tracking and user.login_tracking.last_login %}bg-green-500{% else %}bg-gray-500{% endif %} rounded-full shrink-0 ml-4"></div>
+                </div>
+            </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Avatar validation logic
+  const avatarInput = document.getElementById('avatar');
+  const validationMessageEl = document.getElementById('avatarValidationMessage');
+  
+  avatarInput.addEventListener('change', function(event) {
+    const file = event.target.files[0];
+    
+    if (file) {
+      const maxSize = 2 * 1024 * 1024; // 2MB
+      const allowedTypes = ['image/png', 'image/jpeg', 'image/gif', 'image/webp'];
+      
+      validationMessageEl.classList.add('hidden'); // Hide by default
+
+      if (file.size > maxSize) {
+        validationMessageEl.textContent = 'File is too large. Maximum size is 2MB.';
+        validationMessageEl.classList.remove('hidden');
+        avatarInput.value = ''; // Clear the invalid file
+        return;
+      }
+      
+      if (!allowedTypes.includes(file.type)) {
+        validationMessageEl.textContent = 'Invalid file type. Please use PNG, JPG, GIF, or WEBP.';
+        validationMessageEl.classList.remove('hidden');
+        avatarInput.value = ''; // Clear the invalid file
+        return;
+      }
+    }
+  });
+});
+</script>
+{% endblock %}

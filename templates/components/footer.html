@@ -1,0 +1,26 @@
+<!-- Simple Footer Component -->
+<footer class="text-white py-4 mt-16">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="pt-4 border-t border-gray-700/50">
+            <a href="{{ url_for('dashboard.home') }}"
+               class="text-xl font-bold font-heading text-gray-100 hover:text-white transition-colors">
+                ShopsyPro<span class="text-blue-400">.</span>
+            </a>
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="text-gray-400 text-sm text-center md:text-left mb-4 md:mb-0">
+                    All rights reserved. A modern marketplace for digital goods.
+                </div>
+                <div class="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-6">
+                    <div class="text-xs text-gray-500 flex items-center">
+                        <i class="fas fa-heart mr-2 text-red-500"></i>
+                        <span>Made with love</span>
+                    </div>
+                    <div class="text-xs text-gray-500 flex items-center">
+                        <i class="fas fa-server mr-2 text-green-500"></i>
+                        <span>99.9% Uptime</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>

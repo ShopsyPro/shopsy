@@ -1,0 +1,115 @@
+{% extends "superadmin/base.html" %}
+
+{% block title %}Banned Merchants - Super Admin{% endblock %}
+
+{% block content %}
+<section class="min-h-screen p-4 sm:p-6 md:p-8">
+    <div x-data="{ unbanModalFor: null }" @keydown.escape.window="unbanModalFor = null">
+        <div class="mb-8">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div>
+                    <h1 class="text-3xl font-bold text-slate-100">Banned Merchants</h1>
+                    <p class="text-slate-400 mt-1">A list of all merchants currently banned from the platform.</p>
+                </div>
+                <div class="text-slate-400 font-semibold">
+                    Total: {{ "{:,}".format(total_banned or 0) }}
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-slate-800/80 rounded-xl border border-slate-700">
+            <div class="p-4 flex justify-between items-center border-b border-slate-700">
+                <h3 class="text-lg font-semibold text-slate-100">Banned Merchant List</h3>
+                <p class="text-sm text-slate-400">
+                    Showing {{ (page - 1) * 50 + 1 }}-{{ min(page * 50, total_banned) }} of {{ "{:,}".format(total_banned or 0) }}
+                </p>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left text-slate-400">
+                    <thead class="text-xs text-slate-400 uppercase bg-slate-700/50">
+                        <tr>
+                            <th class="px-6 py-3">Shop Name</th>
+                            <th class="px-6 py-3">Owner</th>
+                            <th class="px-6 py-3">Ban Reason</th>
+                            <th class="px-6 py-3">Banned By</th>
+                            <th class="px-6 py-3">Banned At</th>
+                            <th class="px-6 py-3">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if shops %}
+                            {% for shop in shops %}
+                            <tr class="border-b border-slate-700 hover:bg-slate-700/50 transition-colors">
+                                <td class="px-6 py-4 font-medium text-slate-100 whitespace-nowrap">
+                                    <div class="flex items-center gap-3">
+                                        {% if shop.avatar_url %}
+                                            <img src="{{ shop.avatar_url }}" alt="Avatar" class="rounded-full w-8 h-8 object-cover">
+                                        {% else %}
+                                            <div class="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center">
+                                                <i class="fas fa-store text-slate-400"></i>
+                                            </div>
+                                        {% endif %}
+                                        <span>{{ shop.name }}</span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4">@{{ shop.owner.username }}</td>
+                                <td class="px-6 py-4 text-red-400 max-w-xs truncate">{{ shop.ban_reason }}</td>
+                                <td class="px-6 py-4">{{ shop.banned_by }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap">{{ shop.banned_at.strftime('%b %d, %Y') }}</td>
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center gap-2">
+                                        <a href="{{ url_for('superadmin.merchant_detail', shop_id=shop._id) }}" class="px-3 py-1.5 text-xs font-semibold text-white bg-blue-600 rounded-md hover:bg-blue-700 transition">View</a>
+                                        <button @click="unbanModalFor = '{{ shop._id }}'" class="px-3 py-1.5 text-xs font-semibold text-white bg-green-600 rounded-md hover:bg-green-700 transition">Unban</button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="6" class="text-center py-8 text-slate-500">
+                                    No banned merchants found.
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+            
+            {% if total_pages > 1 %}
+            <nav class="p-4 border-t border-slate-700 flex justify-center">
+                <ul class="inline-flex items-center -space-x-px">
+                    {% if page > 1 %}
+                    <li><a href="{{ url_for('superadmin.banned_merchants', page=page-1) }}" class="px-3 py-2 leading-tight text-slate-400 bg-slate-800 border border-slate-600 rounded-l-lg hover:bg-slate-700 hover:text-white">Prev</a></li>
+                    {% endif %}
+                    {% for p in range(max(1, page-2), min(total_pages+1, page+3)) %}
+                    <li><a href="{{ url_for('superadmin.banned_merchants', page=p) }}" class="px-3 py-2 leading-tight border border-slate-600 {% if p == page %} text-white bg-blue-600 border-blue-600 {% else %} text-slate-400 bg-slate-800 hover:bg-slate-700 hover:text-white {% endif %}">{{ p }}</a></li>
+                    {% endfor %}
+                    {% if page < total_pages %}
+                    <li><a href="{{ url_for('superadmin.banned_merchants', page=page+1) }}" class="px-3 py-2 leading-tight text-slate-400 bg-slate-800 border border-slate-600 rounded-r-lg hover:bg-slate-700 hover:text-white">Next</a></li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+
+        {% for shop in shops %}
+        <div x-show="unbanModalFor === '{{ shop._id }}'" x-transition.opacity.duration.300 class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4" style="display: none;">
+            <div @click.away="unbanModalFor = null" class="bg-slate-900 rounded-xl border border-slate-700 shadow-2xl w-full max-w-md mx-auto">
+                <form action="{{ url_for('superadmin.unban_shop', shop_id=shop._id) }}" method="POST" class="p-8 space-y-4">
+                    <h3 class="text-lg font-bold text-white">Unban Shop "{{ shop.name }}"</h3>
+                    <div class="p-3 rounded-lg border bg-green-500/10 border-green-500/30 text-green-300 text-sm">This will restore the merchant's dashboard access.</div>
+                    <div>
+                        <label for="superuser_password_unban_{{ shop._id }}" class="text-sm font-medium text-slate-300">Superuser Password</label>
+                        <input type="password" id="superuser_password_unban_{{ shop._id }}" name="superuser_password" class="mt-1 w-full p-2 bg-slate-800 border border-slate-600 rounded-lg" required>
+                    </div>
+                    <div class="flex justify-end gap-3 pt-2">
+                        <button type="button" @click="unbanModalFor = null" class="px-4 py-2 text-sm font-semibold text-slate-300 bg-slate-700/70 rounded-lg hover:bg-slate-700">Cancel</button>
+                        <button type="submit" class="px-4 py-2 text-sm font-semibold text-white bg-green-600 rounded-lg hover:bg-green-700">Confirm Unban</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

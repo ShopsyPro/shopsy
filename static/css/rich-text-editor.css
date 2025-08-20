@@ -1,0 +1,123 @@
+/* Rich Text Editor Styles */
+.rich-text-btn {
+  @apply px-2 py-1 rounded text-gray-300 hover:text-white hover:bg-gray-600 transition-colors;
+}
+
+.rich-text-btn:hover {
+  @apply bg-gray-600;
+}
+
+.rich-text-btn:active {
+  @apply bg-gray-700;
+}
+
+#richTextEditor {
+  line-height: 1.6;
+}
+
+#richTextEditor:focus {
+  outline: none;
+}
+
+#richTextEditor[contenteditable="true"]:empty:before {
+  content: attr(data-placeholder);
+  color: #6b7280;
+}
+
+/* Edit Modal Rich Text Editor Styles */
+.edit-rich-text-btn {
+  @apply px-2 py-1 rounded text-gray-300 hover:text-white hover:bg-gray-600 transition-colors;
+}
+
+.edit-rich-text-btn:hover {
+  @apply bg-gray-600;
+}
+
+.edit-rich-text-btn:active {
+  @apply bg-gray-700;
+}
+
+#editRichTextEditor {
+  line-height: 1.6;
+}
+
+#editRichTextEditor:focus {
+  outline: none;
+}
+
+#editRichTextEditor[contenteditable="true"]:empty:before {
+  content: attr(data-placeholder);
+  color: #6b7280;
+}
+
+/* Image Crop Controls */
+.crop-ratio-btn {
+  @apply px-2 py-1 text-xs rounded border border-gray-600 text-gray-400 hover:text-white hover:border-gray-500 transition-colors;
+}
+
+.crop-ratio-btn.active {
+  @apply bg-blue-600 text-white border-blue-500;
+}
+
+#cropPreview img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+/* Edit Modal Image Crop Controls */
+.edit-crop-ratio-btn {
+  @apply px-2 py-1 text-xs rounded border border-gray-600 text-gray-400 hover:text-white hover:border-gray-500 transition-colors;
+}
+
+.edit-crop-ratio-btn.active {
+  @apply bg-blue-600 text-white border-blue-500;
+}
+
+#editCropPreview img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+/* Device Preview Styles */
+.device-tab {
+  transition: all 0.2s ease;
+}
+
+.device-tab:hover {
+  @apply bg-gray-600;
+}
+
+.device-preview {
+  transition: opacity 0.3s ease;
+}
+
+.device-preview.hidden {
+  display: none;
+}
+
+.device-preview.active {
+  display: block;
+}
+
+/* Edit Device Preview Styles */
+.edit-device-tab {
+  transition: all 0.2s ease;
+}
+
+.edit-device-tab:hover {
+  @apply bg-gray-600;
+}
+
+.edit-device-preview {
+  transition: opacity 0.3s ease;
+}
+
+.edit-device-preview.hidden {
+  display: none;
+}
+
+.edit-device-preview.active {
+  display: block;
+} 

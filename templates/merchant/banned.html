@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Banned Accounts | ShopsyPro</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='assets/default_avatar.png') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 min-h-screen flex items-center justify-center p-4 antialiased">
+
+    <!-- Header with Logout Button -->
+    <div class="fixed top-4 right-4 z-50">
+        <a href="{{ url_for('auth.logout') }}" 
+           class="inline-flex items-center px-4 py-2 bg-slate-800/80 backdrop-blur-md border border-slate-700 text-slate-300 hover:text-white hover:bg-slate-700/80 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-900 focus:ring-blue-500">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+            </svg>
+            Logout
+        </a>
+    </div>
+
+    <div class="bg-slate-800/80 backdrop-blur-md rounded-xl border border-slate-700 w-full max-w-lg mx-auto shadow-2xl text-center p-8">
+        
+        <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-red-500/10 border border-red-500/20 mb-5">
+            <svg class="h-8 w-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path>
+            </svg>
+        </div>
+        
+        <h1 class="text-3xl font-bold text-red-400">Account Banned</h1>
+        <p class="text-slate-400 mt-2">Your merchant account has been suspended.</p>
+        
+        <div class="text-left bg-slate-900/50 rounded-lg p-6 my-6 border border-slate-700 space-y-4">
+            <h2 class="text-lg font-semibold text-slate-100 mb-4">Ban Information</h2>
+            <div>
+                <p class="text-sm font-medium text-slate-400">Reason for Suspension:</p>
+                <p class="p-3 mt-1 rounded-md border bg-red-500/10 border-red-500/30 text-red-300 text-sm">
+                    {{ ban_info.ban_reason }}
+                </p>
+            </div>
+             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                <div>
+                    <p class="text-slate-400">Banned by:</p>
+                    <p class="text-slate-200 font-medium">{{ ban_info.banned_by }}</p>
+                </div>
+                <div>
+                    <p class="text-slate-400">Banned on:</p>
+                    <p class="text-slate-200 font-medium">{{ ban_info.banned_at.strftime('%b %d, %Y at %I:%M %p') }}</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="text-left bg-slate-800 rounded-lg p-6 border border-slate-700">
+             <h2 class="text-lg font-semibold text-slate-100 mb-2">Need Help?</h2>
+            <p class="text-slate-400 text-sm mb-4">If you believe this was an error, please contact our support team.</p>
+            <div class="flex flex-col sm:flex-row gap-3">
+                <a href="mailto:hi@shopsy.pro" class="w-full text-center px-5 py-2.5 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-900 focus:ring-blue-500 transition">
+                    Contact Support
+                </a>
+            </div>
+        </div>
+
+        <div class="text-xs text-slate-500 mt-8">
+            This action was taken to maintain the integrity of our platform.
+        </div>
+    </div>
+    
+</body>
+</html>

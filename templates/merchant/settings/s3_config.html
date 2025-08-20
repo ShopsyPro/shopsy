@@ -1,0 +1,86 @@
+{% extends "_base/base.html" %}
+
+{% block content %}    
+<section class="min-h-screen p-6">
+    <div class="max-w-4xl mx-auto">
+      <!-- Header -->
+      <header class="mb-8">
+        <h2 class="text-2xl font-bold text-white">S3 Configuration Check</h2>
+        <p class="text-gray-400">Diagnostics for AWS S3 image upload functionality</p>
+      </header>
+
+      <div class="bg-gray-900 rounded-lg p-6 border border-gray-800 mb-8">
+        <h3 class="text-xl font-medium text-white mb-4">Configuration Status</h3>
+        
+        <div class="space-y-4">
+          <div class="grid grid-cols-2 gap-4">
+            <div class="font-medium text-gray-400">AWS Access Key:</div>
+            <div class="{% if config.access_key_set %}text-green-500{% else %}text-red-500{% endif %}">
+              {{ "Set" if config.access_key_set else "Not set" }}
+            </div>
+            
+            <div class="font-medium text-gray-400">AWS Secret Key:</div>
+            <div class="{% if config.secret_key_set %}text-green-500{% else %}text-red-500{% endif %}">
+              {{ "Set" if config.secret_key_set else "Not set" }}
+            </div>
+            
+            <div class="font-medium text-gray-400">S3 Bucket Name:</div>
+            <div class="text-white">{{ config.bucket_name }}</div>
+            
+            <div class="font-medium text-gray-400">AWS Region:</div>
+            <div class="text-white">{{ config.region }}</div>
+            
+            <div class="font-medium text-gray-400">S3 Client Initialized:</div>
+            <div class="{% if config.s3_client_initialized %}text-green-500{% else %}text-red-500{% endif %}">
+              {{ "Yes" if config.s3_client_initialized else "No" }}
+            </div>
+            
+            <div class="font-medium text-gray-400">Bucket Accessible:</div>
+            <div class="{% if config.bucket_accessible %}text-green-500{% else %}text-red-500{% endif %}">
+              {{ "Yes" if config.bucket_accessible else "No" }}
+            </div>
+            
+            {% if config.bucket_accessible %}
+            <div class="font-medium text-gray-400">Items in Bucket:</div>
+            <div class="text-white">{{ config.bucket_count }}</div>
+            {% endif %}
+            
+            {% if config.error %}
+            <div class="font-medium text-gray-400">Error:</div>
+            <div class="text-red-500">{{ config.error }}</div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      
+      <div class="bg-gray-900 rounded-lg p-6 border border-gray-800">
+        <h3 class="text-xl font-medium text-white mb-4">Troubleshooting</h3>
+        
+        <div class="space-y-4 text-gray-300">
+          <p>If you're having issues with S3 uploads, check the following:</p>
+          
+          <ol class="list-decimal pl-5 space-y-2">
+            <li>Make sure your <code class="bg-gray-800 px-1 rounded">.env</code> file contains the following variables:
+              <ul class="list-disc pl-5 mt-2 text-gray-400">
+                <li>ACCESS_KEY - Your AWS access key</li>
+                <li>SECRET_ACCESS_KEY - Your AWS secret key</li>
+                <li>S3_BUCKET_NAME - Your S3 bucket name</li>
+                <li>AWS_REGION - Your AWS region (e.g. us-east-1)</li>
+              </ul>
+            </li>
+            <li>Verify that your AWS credentials have permission to:
+              <ul class="list-disc pl-5 mt-2 text-gray-400">
+                <li>s3:PutObject</li>
+                <li>s3:GetObject</li>
+                <li>s3:DeleteObject</li>
+                <li>s3:ListBucket</li>
+              </ul>
+            </li>
+            <li>Check that your S3 bucket exists and is properly configured</li>
+            <li>Look in the server logs (console output) for detailed error messages</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+</section>
+{% endblock %} 

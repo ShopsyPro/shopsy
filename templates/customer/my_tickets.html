@@ -1,0 +1,543 @@
+{% extends "customer/customer_base.html" %}
+
+{% block title %}Support Tickets | ShopsyPro{% endblock %}
+
+{% block content %}
+<section id="my-tickets" class="min-h-screen p-4 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+  <div class="max-w-4xl mx-auto">
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-8">
+      <div>
+        <h1 class="text-3xl font-bold text-white mb-2 bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">My Support Tickets</h1>
+        <p class="text-gray-400 text-lg">Track and manage your support requests</p>
+      </div>
+      <div class="flex space-x-4">
+        <button id="refreshTickets" class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed" title="Refresh Tickets">
+          <i class="fas fa-sync-alt mr-2" id="refreshIcon"></i> 
+          <span id="refreshText">Refresh</span>
+        </button>
+        <a href="{{ url_for('orders.customer_orders_support_page') }}" class="inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition-colors">
+          <i class="fas fa-plus mr-2"></i> New Ticket
+        </a>
+      </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div class="bg-gray-800/80 backdrop-blur-sm rounded-xl border border-gray-700/50 p-6">
+        <div class="flex items-center">
+          <div class="p-3 bg-blue-500/20 rounded-lg">
+            <i class="fas fa-ticket-alt text-blue-400 text-xl"></i>
+          </div>
+          <div class="ml-4">
+            <p class="text-gray-400 text-sm">Total Tickets</p>
+            <p class="text-2xl font-bold text-white" id="totalTickets">-</p>
+          </div>
+        </div>
+      </div>
+      <div class="bg-gray-800/80 backdrop-blur-sm rounded-xl border border-gray-700/50 p-6">
+        <div class="flex items-center">
+          <div class="p-3 bg-yellow-500/20 rounded-lg">
+            <i class="fas fa-clock text-yellow-400 text-xl"></i>
+          </div>
+          <div class="ml-4">
+            <p class="text-gray-400 text-sm">Open Tickets</p>
+            <p class="text-2xl font-bold text-white" id="openTickets">-</p>
+          </div>
+        </div>
+      </div>
+      <div class="bg-gray-800/80 backdrop-blur-sm rounded-xl border border-gray-700/50 p-6">
+        <div class="flex items-center">
+          <div class="p-3 bg-green-500/20 rounded-lg">
+            <i class="fas fa-check-circle text-green-400 text-xl"></i>
+          </div>
+          <div class="ml-4">
+            <p class="text-gray-400 text-sm">Resolved</p>
+            <p class="text-2xl font-bold text-white" id="resolvedTickets">-</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="bg-gray-800/80 backdrop-blur-sm rounded-xl border border-gray-700/50 p-6 mb-8">
+      <div class="flex flex-wrap items-center gap-4">
+        <div class="flex-1 min-w-0">
+          <input type="text" id="searchTickets" placeholder="Search tickets..." class="w-full px-4 py-2 bg-gray-700/80 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+        </div>
+        <select id="statusFilter" class="px-4 py-2 bg-gray-700/80 border border-gray-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+          <option value="">All Status</option>
+          <option value="open">Open</option>
+          <option value="closed">Closed</option>
+        </select>
+        <select id="sortBy" class="px-4 py-2 bg-gray-700/80 border border-gray-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+          <option value="updated_at">Latest Activity</option>
+          <option value="created_at">Date Created</option>
+          <option value="subject">Subject</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Tickets List -->
+    <div id="ticketsContainer" class="space-y-4">
+      <!-- Loading state -->
+      <div id="loadingTickets" class="text-center py-12">
+        <div class="inline-flex items-center px-4 py-2 font-semibold leading-6 text-white shadow rounded-md">
+          <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          Loading tickets...
+        </div>
+      </div>
+
+      <!-- Empty state -->
+      <div id="emptyTickets" class="text-center py-12 hidden">
+        <div class="text-gray-400 mb-4">
+          <i class="fas fa-ticket-alt text-6xl"></i>
+        </div>
+        <h3 class="text-xl font-semibold text-white mb-2">No Support Tickets</h3>
+        <p class="text-gray-400 mb-6">You haven't created any support tickets yet.</p>
+        <a href="{{ url_for('orders.customer_orders_support_page') }}" class="inline-flex items-center px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors">
+          <i class="fas fa-plus mr-2"></i>
+          Create Your First Ticket
+        </a>
+      </div>
+
+      <!-- Tickets will be populated here -->
+      <div id="ticketsList" class="space-y-4"></div>
+    </div>
+  </div>
+</section>
+
+<!-- Ticket Conversation Modal -->
+<div id="ticketConversationModal" class="fixed inset-0 z-50 hidden" style="background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(4px);">
+  <div class="flex items-center justify-center min-h-screen p-4">
+    <div class="bg-gray-900 rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col border border-gray-700 overflow-hidden">
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between p-4 border-b border-gray-700 bg-gray-800/80 flex-shrink-0">
+        <div class="flex items-center space-x-3 min-w-0 flex-1">
+          <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
+            <i class="fas fa-ticket-alt text-white text-sm"></i>
+          </div>
+          <div class="min-w-0 flex-1">
+            <h3 class="text-lg font-semibold text-white truncate" id="modalTicketSubject"></h3>
+            <div class="text-gray-400 text-sm flex items-center space-x-2" id="modalTicketMeta"></div>
+          </div>
+        </div>
+        <div class="flex items-center space-x-1 flex-shrink-0 ml-4">
+          <button id="refreshConversation" class="p-2 text-gray-400 hover:text-white hover:bg-gray-700 rounded-lg transition-all duration-200" title="Refresh conversation">
+            <i class="fas fa-sync-alt text-sm"></i>
+          </button>
+          <button id="closeConversationModal" class="p-2 text-gray-400 hover:text-white hover:bg-gray-700 rounded-lg transition-all duration-200">
+            <i class="fas fa-times text-lg"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Messages Container -->
+      <div id="modalTicketMessages" class="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-900 min-h-0"></div>
+
+      <!-- Reply Form -->
+      <form id="modalReplyForm" class="p-4 border-t border-gray-700 bg-gray-800/50 flex-shrink-0 hidden">
+        <div class="flex space-x-3">
+          <div class="flex-1">
+            <div class="relative">
+              <textarea id="modalReplyMessage" rows="2" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-sm" placeholder="Type your reply..."></textarea>
+              <div class="absolute bottom-2 right-2 text-gray-500 text-xs">
+                <span id="charCount">0</span>/1000
+              </div>
+            </div>
+          </div>
+          <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors flex items-center text-sm self-end">
+            <i class="fas fa-paper-plane mr-2"></i>
+            Send
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const customerEmail = '{{ customer_email }}';
+  let allTickets = [];
+  let currentModalTicketId = null;
+
+  // Elements
+  const ticketsList = document.getElementById('ticketsList');
+  const loadingTickets = document.getElementById('loadingTickets');
+  const emptyTickets = document.getElementById('emptyTickets');
+  const searchInput = document.getElementById('searchTickets');
+  const statusFilter = document.getElementById('statusFilter');
+  const sortBy = document.getElementById('sortBy');
+  const refreshBtn = document.getElementById('refreshTickets');
+  const refreshIcon = document.getElementById('refreshIcon');
+  const refreshText = document.getElementById('refreshText');
+  const totalTicketsEl = document.getElementById('totalTickets');
+  const openTicketsEl = document.getElementById('openTickets');
+  const resolvedTicketsEl = document.getElementById('resolvedTickets');
+
+  // Modal elements
+  const ticketConversationModal = document.getElementById('ticketConversationModal');
+  const closeConversationModal = document.getElementById('closeConversationModal');
+  const modalTicketSubject = document.getElementById('modalTicketSubject');
+  const modalTicketMeta = document.getElementById('modalTicketMeta');
+  const modalTicketMessages = document.getElementById('modalTicketMessages');
+  const modalReplyForm = document.getElementById('modalReplyForm');
+  const modalReplyMessage = document.getElementById('modalReplyMessage');
+
+  // Load tickets on page load
+  loadTickets();
+
+  // Event listeners
+  refreshBtn.addEventListener('click', loadTickets);
+  searchInput.addEventListener('input', filterTickets);
+  statusFilter.addEventListener('change', filterTickets);
+  sortBy.addEventListener('change', filterTickets);
+  closeConversationModal.addEventListener('click', closeModal);
+  
+  // Close modal when clicking outside
+  ticketConversationModal.addEventListener('click', function(e) {
+    if (e.target === ticketConversationModal) {
+      closeModal();
+    }
+  });
+  
+  // Refresh conversation button
+  document.getElementById('refreshConversation').addEventListener('click', function() {
+    if (currentModalTicketId) {
+      const refreshIcon = this.querySelector('i');
+      refreshIcon.classList.add('fa-spin');
+      
+      openTicketConversation(currentModalTicketId).finally(() => {
+        refreshIcon.classList.remove('fa-spin');
+      });
+    }
+  });
+  
+  // Character count for reply textarea
+  modalReplyMessage.addEventListener('input', function() {
+    const charCount = this.value.length;
+    document.getElementById('charCount').textContent = charCount;
+    
+    if (charCount > 1000) {
+      this.value = this.value.substring(0, 1000);
+      document.getElementById('charCount').textContent = '1000';
+    }
+  });
+
+  // Load tickets from API
+  async function loadTickets() {
+    if (!customerEmail) {
+      showEmptyState();
+      return;
+    }
+
+    try {
+      // Show loading state on refresh button
+      refreshBtn.disabled = true;
+      refreshIcon.classList.add('fa-spin');
+      refreshText.textContent = 'Loading...';
+      
+      // Only show main loading if no tickets are currently displayed
+      if (allTickets.length === 0) {
+        loadingTickets.classList.remove('hidden');
+        ticketsList.innerHTML = '';
+        emptyTickets.classList.add('hidden');
+      }
+
+      const resp = await fetch(`/support/api/tickets/customer/${encodeURIComponent(customerEmail)}`);
+      const data = await resp.json();
+      
+      if (data.tickets && data.tickets.length > 0) {
+        allTickets = data.tickets;
+        updateStats();
+        renderTickets(allTickets);
+        loadingTickets.classList.add('hidden');
+      } else {
+        showEmptyState();
+      }
+    } catch (err) {
+      console.error('Error loading tickets:', err);
+      showEmptyState();
+    } finally {
+      // Reset refresh button state
+      refreshBtn.disabled = false;
+      refreshIcon.classList.remove('fa-spin');
+      refreshText.textContent = 'Refresh';
+    }
+  }
+
+  function showEmptyState() {
+    loadingTickets.classList.add('hidden');
+    ticketsList.innerHTML = '';
+    emptyTickets.classList.remove('hidden');
+    updateStats();
+  }
+
+  function updateStats() {
+    const total = allTickets.length;
+    const open = allTickets.filter(t => t.status === 'open').length;
+    const resolved = allTickets.filter(t => t.status === 'closed').length;
+
+    totalTicketsEl.textContent = total;
+    openTicketsEl.textContent = open;
+    resolvedTicketsEl.textContent = resolved;
+  }
+
+  function filterTickets() {
+    const searchTerm = searchInput.value.toLowerCase();
+    const statusFilterValue = statusFilter.value;
+    const sortByValue = sortBy.value;
+
+    let filtered = allTickets.filter(ticket => {
+      const matchesSearch = ticket.subject.toLowerCase().includes(searchTerm) ||
+                           ticket.description.toLowerCase().includes(searchTerm);
+      const matchesStatus = !statusFilterValue || ticket.status === statusFilterValue;
+      return matchesSearch && matchesStatus;
+    });
+
+    // Sort tickets
+    filtered.sort((a, b) => {
+      if (sortByValue === 'subject') {
+        return a.subject.localeCompare(b.subject);
+      } else if (sortByValue === 'created_at') {
+        return new Date(b.created_at) - new Date(a.created_at);
+      } else {
+        return new Date(b.updated_at) - new Date(a.updated_at);
+      }
+    });
+
+    renderTickets(filtered);
+  }
+
+  function renderTickets(tickets) {
+    if (tickets.length === 0) {
+      ticketsList.innerHTML = `
+        <div class="text-center py-8 text-gray-400">
+          <i class="fas fa-search text-4xl mb-4"></i>
+          <p>No tickets match your filters</p>
+        </div>
+      `;
+      return;
+    }
+
+    ticketsList.innerHTML = tickets.map(ticket => {
+      const statusColor = ticket.status === 'open' ? 'bg-yellow-500/20 text-yellow-400' : 'bg-green-500/20 text-green-400';
+      const statusIcon = ticket.status === 'open' ? 'fas fa-clock' : 'fas fa-check-circle';
+      const lastMessage = ticket.messages && ticket.messages.length > 0 ? ticket.messages[ticket.messages.length - 1] : null;
+      const hasUnread = lastMessage && lastMessage.sender === 'merchant' && lastMessage.unread_by_customer;
+      const orders = (ticket.order_ids || []).map(id => `<span class='bg-gray-700 text-xs px-2 py-1 rounded mr-1'>${id}</span>`).join(' ');
+
+      return `
+        <div class="bg-gray-800/80 backdrop-blur-sm rounded-xl border border-gray-700/50 p-6 hover:border-blue-500/50 transition-all duration-200 ${hasUnread ? 'ring-2 ring-blue-500/50' : ''}">
+          <div class="flex items-start justify-between mb-4">
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center space-x-3 mb-2">
+                <h3 class="text-lg font-semibold text-white truncate">${ticket.subject}</h3>
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusColor}">
+                  <i class="${statusIcon} mr-1"></i>
+                  ${ticket.status}
+                </span>
+                ${hasUnread ? '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-500/20 text-blue-400"><i class="fas fa-bell mr-1"></i> New</span>' : ''}
+              </div>
+              <p class="text-gray-400 text-sm mb-2">${ticket.description}</p>
+              ${orders ? `<div class="text-gray-500 text-xs mb-2">Orders: ${orders}</div>` : ''}
+              ${lastMessage ? `<div class="text-xs text-blue-300"><b>${lastMessage.sender === 'customer' ? 'You' : 'Merchant'}:</b> ${lastMessage.message.substring(0, 100)}${lastMessage.message.length > 100 ? '...' : ''}</div>` : ''}
+            </div>
+            <div class="text-right text-xs text-gray-500 ml-4">
+              <div>Created: ${new Date(ticket.created_at).toLocaleDateString()}</div>
+              <div>Updated: ${new Date(ticket.updated_at).toLocaleDateString()}</div>
+            </div>
+          </div>
+          <div class="flex items-center justify-between">
+            <div class="text-xs text-gray-500">
+              ${ticket.messages ? ticket.messages.length : 0} message${ticket.messages && ticket.messages.length !== 1 ? 's' : ''}
+            </div>
+            <button class="viewConversationBtn px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg transition-colors flex items-center" data-ticket-id="${ticket._id}">
+              <i class="fas fa-comments mr-2"></i>
+              View Conversation
+            </button>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    // Add event listeners to view conversation buttons
+    document.querySelectorAll('.viewConversationBtn').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const ticketId = this.getAttribute('data-ticket-id');
+        openTicketConversation(ticketId);
+      });
+    });
+  }
+
+  async function openTicketConversation(ticketId) {
+    try {
+      // Prevent body scroll when modal is open
+      document.body.style.overflow = 'hidden';
+      
+      // Show modal and loading state
+      ticketConversationModal.classList.remove('hidden');
+      modalTicketMessages.innerHTML = `
+        <div class="flex items-center justify-center h-32">
+          <div class="inline-flex items-center px-4 py-2 font-semibold leading-6 text-white shadow rounded-md">
+            <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Loading conversation...
+          </div>
+        </div>
+      `;
+      
+      const resp = await fetch(`/support/api/tickets/${ticketId}`);
+      const data = await resp.json();
+      if (!data.ticket) throw new Error('Ticket not found');
+      
+      const ticket = data.ticket;
+      currentModalTicketId = ticketId;
+      
+      // Set modal content
+      modalTicketSubject.textContent = ticket.subject;
+      
+      const statusBadge = ticket.status === 'open' 
+        ? '<span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-500/20 text-yellow-400"><i class="fas fa-clock mr-1"></i>Open</span>'
+        : '<span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-500/20 text-green-400"><i class="fas fa-check-circle mr-1"></i>Closed</span>';
+      
+      const orderIds = ticket.order_ids || [];
+      const ordersText = orderIds.length 
+        ? `Orders: ${orderIds.join(', ')}` 
+        : 'No orders';
+      
+      modalTicketMeta.innerHTML = `
+        ${statusBadge}
+        <span class="text-gray-500">•</span>
+        <span class="text-gray-400 text-xs">${ordersText}</span>
+        <span class="text-gray-500">•</span>
+        <span class="text-gray-400 text-xs">Created ${new Date(ticket.created_at).toLocaleDateString()}</span>
+      `;
+      
+      // Render messages
+      modalTicketMessages.innerHTML = '';
+      (ticket.messages || []).forEach((msg, index) => {
+        const isFromCustomer = msg.sender === 'customer';
+        const alignment = isFromCustomer ? 'justify-end' : 'justify-start';
+        const bgColor = isFromCustomer ? 'bg-blue-600' : 'bg-gray-700';
+        const senderName = isFromCustomer ? 'You' : 'Merchant';
+        const senderIcon = isFromCustomer ? 'fas fa-user' : 'fas fa-store';
+        const timeAgo = getTimeAgo(new Date(msg.timestamp));
+        
+        modalTicketMessages.innerHTML += `
+          <div class="flex ${alignment}">
+            <div class="max-w-xs sm:max-w-sm lg:max-w-md">
+              <div class="flex items-center space-x-2 mb-1 ${isFromCustomer ? 'justify-end' : 'justify-start'}">
+                <div class="w-5 h-5 rounded-full ${isFromCustomer ? 'bg-blue-500' : 'bg-gray-600'} flex items-center justify-center">
+                  <i class="${senderIcon} text-white text-xs"></i>
+                </div>
+                <span class="text-xs font-medium text-gray-300">${senderName}</span>
+                <span class="text-xs text-gray-500">${timeAgo}</span>
+              </div>
+              <div class="${bgColor} text-white rounded-lg px-3 py-2 shadow">
+                <div class="text-sm leading-relaxed">${msg.message}</div>
+              </div>
+            </div>
+          </div>
+        `;
+      });
+      
+      // Scroll to bottom of messages
+      modalTicketMessages.scrollTop = modalTicketMessages.scrollHeight;
+      
+      // Show/hide reply form
+      if (ticket.status === 'open') {
+        modalReplyForm.classList.remove('hidden');
+      } else {
+        modalReplyForm.classList.add('hidden');
+      }
+      
+      return Promise.resolve();
+    } catch (err) {
+      console.error('Error loading ticket conversation:', err);
+      modalTicketMessages.innerHTML = `
+        <div class="flex items-center justify-center h-32">
+          <div class="text-center">
+            <div class="text-red-400 text-4xl mb-4">
+              <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-white mb-2">Failed to Load Conversation</h3>
+            <p class="text-gray-400 text-sm">Please try again later.</p>
+            <button onclick="closeModal()" class="mt-4 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg text-sm transition-colors">
+              Close
+            </button>
+          </div>
+        </div>
+      `;
+      return Promise.reject(err);
+    }
+  }
+
+  // Helper function to format time ago
+  function getTimeAgo(date) {
+    const now = new Date();
+    const diffInSeconds = Math.floor((now - date) / 1000);
+    
+    if (diffInSeconds < 60) return 'Just now';
+    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
+    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
+    if (diffInSeconds < 2592000) return `${Math.floor(diffInSeconds / 86400)}d ago`;
+    
+    return date.toLocaleDateString();
+  }
+
+  function closeModal() {
+    ticketConversationModal.classList.add('hidden');
+    document.body.style.overflow = 'auto'; // Restore body scroll
+    currentModalTicketId = null;
+    modalReplyMessage.value = '';
+    document.getElementById('charCount').textContent = '0';
+  }
+
+  // Keyboard shortcuts
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && !ticketConversationModal.classList.contains('hidden')) {
+      closeModal();
+    }
+  });
+
+  // Handle reply form submission
+  modalReplyForm.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const message = modalReplyMessage.value.trim();
+    if (!message || !currentModalTicketId) return;
+    
+    const submitBtn = modalReplyForm.querySelector('button[type="submit"]');
+    const originalContent = submitBtn.innerHTML;
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Sending...';
+    
+    try {
+      const resp = await fetch(`/support/api/tickets/${currentModalTicketId}/reply`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sender: 'customer', message })
+      });
+      
+      if (!resp.ok) throw new Error('Failed to send reply');
+      
+      modalReplyMessage.value = '';
+      document.getElementById('charCount').textContent = '0';
+      await openTicketConversation(currentModalTicketId); // Refresh conversation
+      loadTickets(); // Refresh ticket list
+    } catch (err) {
+      alert('Failed to send reply.');
+    }
+    
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = originalContent;
+  });
+});
+</script>
+{% endblock %}

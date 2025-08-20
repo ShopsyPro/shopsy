@@ -1,0 +1,624 @@
+{% extends "_base/base.html" %}
+
+{% block content %}
+<style>
+/* Custom dropdown styling */
+#currency-select {
+    background-image: none;
+    transition: all 0.2s ease-in-out;
+}
+
+#currency-select:hover {
+    background-color: rgba(51, 65, 85, 0.9);
+    border-color: rgba(96, 165, 250, 0.3);
+}
+
+#currency-select:focus {
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    background-color: rgba(51, 65, 85, 0.95);
+}
+
+#currency-select option {
+    background-color: #334155;
+    color: #f1f5f9;
+    padding: 8px 12px;
+    border: none;
+}
+
+#currency-select option:hover {
+    background-color: #475569;
+    color: #ffffff;
+}
+
+#currency-select option:checked {
+    background-color: #3b82f6;
+    color: #ffffff;
+}
+
+/* Custom scrollbar for dropdown */
+#currency-select::-webkit-scrollbar {
+    width: 6px;
+}
+
+#currency-select::-webkit-scrollbar-track {
+    background: #1e293b;
+}
+
+#currency-select::-webkit-scrollbar-thumb {
+    background: #475569;
+    border-radius: 3px;
+}
+
+#currency-select::-webkit-scrollbar-thumb:hover {
+    background: #64748b;
+}
+</style>
+<section id="subscription" class="min-h-screen p-4 sm:p-6 md:p-8 bg-gradient-to-b from-gray-900 to-slate-800 text-slate-300">
+    <div class="max-w-4xl mx-auto">
+        <!-- Header -->
+        <div class="mb-8">
+            <h2 class="text-3xl font-bold text-slate-100 mb-2">Subscription Management</h2>
+            <p class="text-slate-400">Upgrade to Premium to unlock unlimited features for your store</p>
+        </div>
+
+        <!-- Current Status Card -->
+        <div class="bg-slate-800/80 rounded-xl p-6 border border-slate-700 mb-8">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h3 class="text-xl font-semibold text-slate-100 mb-2">Current Plan</h3>
+                    {% if is_paid and active_subscription %}
+                        <p class="text-green-400 font-medium">Premium Plan</p>
+                        <p class="text-slate-400 text-sm mt-1">
+                            Active until {{ active_subscription.ends_at.strftime('%B %d, %Y at %I:%M %p') }}
+                        </p>
+                    {% else %}
+                        <p class="text-orange-400 font-medium">Free Plan</p>
+                        <p class="text-slate-400 text-sm mt-1">Limited features available</p>
+                    {% endif %}
+                </div>
+                <div class="text-right">
+                    {% if is_paid %}
+                        <span class="bg-green-500/20 text-green-400 px-3 py-1 rounded-full text-sm font-medium">Active</span>
+                    {% else %}
+                        <span class="bg-orange-500/20 text-orange-400 px-3 py-1 rounded-full text-sm font-medium">Free</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Premium Features Section (only show for premium users) -->
+        {% if is_paid and active_subscription %}
+        <div class="bg-gradient-to-br from-blue-600/20 to-purple-600/20 rounded-xl p-6 border border-blue-500/30 mb-8">
+            <div class="flex items-center justify-between mb-6">
+                <div>
+                    <h3 class="text-xl font-semibold text-slate-100 mb-2">Premium Features</h3>
+                    <p class="text-slate-400">Exclusive features available with your Premium subscription</p>
+                </div>
+                <div class="text-right">
+                    <span class="bg-gradient-to-r from-blue-500 to-purple-500 text-white px-4 py-2 rounded-full text-sm font-medium">
+                        Premium Active
+                    </span>
+                </div>
+            </div>
+            
+            <div class="grid md:grid-cols-2 gap-4">
+                <!-- Theme Management -->
+                <div class="bg-slate-800/50 rounded-lg p-4 border border-slate-700">
+                    <div class="flex items-center mb-3">
+                        <svg class="w-6 h-6 text-purple-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zM21 5a2 2 0 00-2-2h-4a2 2 0 00-2 2v12a4 4 0 004 4h4a2 2 0 002-2V5z"></path>
+                        </svg>
+                        <h4 class="text-lg font-semibold text-slate-100">Premium Themes</h4>
+                    </div>
+                    <p class="text-slate-400 text-sm mb-4">Customize your storefront with exclusive premium themes</p>
+                    <a href="{{ url_for('subscriptions.themes') }}" 
+                       class="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 inline-block">
+                        Manage Themes
+                    </a>
+                </div>
+                
+                <!-- Analytics (Future Feature) -->
+                <div class="bg-slate-800/50 rounded-lg p-4 border border-slate-700 opacity-60">
+                    <div class="flex items-center mb-3">
+                        <svg class="w-6 h-6 text-blue-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                        </svg>
+                        <h4 class="text-lg font-semibold text-slate-300">Advanced Analytics</h4>
+                    </div>
+                    <p class="text-slate-500 text-sm mb-4">Detailed insights and performance metrics</p>
+                    <button disabled class="bg-slate-700 text-slate-400 px-4 py-2 rounded-lg text-sm font-medium cursor-not-allowed">
+                        Coming Soon
+                    </button>
+                </div>
+                
+                <!-- Stripe Connect -->
+                <div class="bg-slate-800/50 rounded-lg p-4 border border-slate-700 opacity-60">
+                    <div class="flex items-center mb-3">
+                        <svg class="w-6 h-6 text-teal-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+                        </svg>
+                        <h4 class="text-lg font-semibold text-slate-300">Stripe Connect</h4>
+                    </div>
+                    <p class="text-slate-500 text-sm mb-4">Accept credit cards and other payment methods</p>
+                    <button disabled class="bg-slate-700 text-slate-400 px-4 py-2 rounded-lg text-sm font-medium cursor-not-allowed">
+                        Coming Soon
+                    </button>
+                </div>
+                
+                <!-- PayPal Connect -->
+                <div class="bg-slate-800/50 rounded-lg p-4 border border-slate-700 opacity-60">
+                    <div class="flex items-center mb-3">
+                        <svg class="w-6 h-6 text-blue-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2z"></path>
+                        </svg>
+                        <h4 class="text-lg font-semibold text-slate-300">PayPal Connect</h4>
+                    </div>
+                    <p class="text-slate-500 text-sm mb-4">Accept payments via PayPal accounts</p>
+                    <button disabled class="bg-slate-700 text-slate-400 px-4 py-2 rounded-lg text-sm font-medium cursor-not-allowed">
+                        Coming Soon
+                    </button>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Pending Payment Warning -->
+        {% if pending_subscription %}
+        <div class="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-6 mb-8">
+            <div class="flex items-start">
+                <svg class="w-6 h-6 text-yellow-400 mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                </svg>
+                <div class="flex-1">
+                    <h4 class="text-yellow-400 font-semibold mb-2">Payment Pending</h4>
+                    <p class="text-slate-300 mb-4">
+                        You have a pending subscription payment. Complete it to activate your premium plan.
+                    </p>
+                    <div class="flex items-center gap-4">
+                        <a href="{{ pending_subscription.payment_link }}" 
+                           target="_blank"
+                           class="bg-yellow-600 hover:bg-yellow-700 text-white px-6 py-2 rounded-lg font-medium transition-colors">
+                            Resume Payment
+                        </a>
+                        <button onclick="cancelSubscription('{{ pending_subscription._id }}')"
+                                class="text-slate-400 hover:text-slate-300 px-4 py-2 text-sm transition-colors">
+                            Cancel
+                        </button>
+                    </div>
+                    <p class="text-slate-400 text-sm mt-2">
+                        Payment expires in <span id="payment-countdown" data-expires="{{ pending_subscription.expires_at.strftime('%Y-%m-%dT%H:%M:%S.%fZ') }}"></span>
+                    </p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Theme Preview Section (for non-premium users) -->
+        {% if not is_paid %}
+        <div class="bg-gradient-to-br from-purple-600/20 to-pink-600/20 rounded-xl p-6 border border-purple-500/30 mb-8">
+            <div class="text-center mb-6">
+                <h3 class="text-xl font-semibold text-slate-100 mb-2">Preview Premium Themes</h3>
+                <p class="text-slate-400">See how your storefront would look with exclusive premium themes</p>
+            </div>
+            
+            <div class="grid md:grid-cols-2 gap-4">
+                <!-- Premium Theme 1 Preview -->
+                <div class="bg-slate-800/50 rounded-lg p-4 border border-slate-700">
+                    <div class="flex items-center justify-between mb-3">
+                        <h4 class="text-lg font-semibold text-slate-100">Modern Minimalist</h4>
+                        <span class="bg-gradient-to-r from-amber-500 to-orange-500 text-white px-2 py-1 rounded-full text-xs font-medium">Premium</span>
+                    </div>
+                    <p class="text-slate-400 text-sm mb-4">Clean, elegant design with enhanced typography and professional spacing</p>
+                    <a href="{{ url_for('subscriptions.preview_theme', theme_name='dark-elegance') }}" target="_blank"
+                       class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors inline-block">
+                        Preview Theme
+                    </a>
+                </div>
+                
+                <!-- Premium Theme 2 Preview -->
+                <div class="bg-slate-800/50 rounded-lg p-4 border border-slate-700">
+                    <div class="flex items-center justify-between mb-3">
+                        <h4 class="text-lg font-semibold text-slate-100">Bold & Colorful</h4>
+                        <span class="bg-gradient-to-r from-amber-500 to-orange-500 text-white px-2 py-1 rounded-full text-xs font-medium">Premium</span>
+                    </div>
+                    <p class="text-slate-400 text-sm mb-4">Bright, modern light theme with colorful accents and dynamic animations</p>
+                    <a href="{{ url_for('subscriptions.preview_theme', theme_name='bold-minimalist') }}" target="_blank"
+                       class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors inline-block">
+                        Preview Theme
+                    </a>
+                </div>
+            </div>
+            
+            <div class="text-center mt-6">
+                <p class="text-slate-400 text-sm">
+                    <i class="fas fa-info-circle mr-1"></i>
+                    Upgrade to Premium to access these themes and customize your storefront
+                </p>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Pricing Section -->
+        {% if not is_paid and not pending_subscription %}
+        <div class="grid md:grid-cols-2 gap-8 mb-8">
+            <!-- Free Plan -->
+            <div class="bg-slate-800/50 rounded-xl p-6 border border-slate-700">
+                <div class="text-center mb-6">
+                    <h3 class="text-xl font-semibold text-slate-100 mb-2">Free Plan</h3>
+                    <div class="text-3xl font-bold text-slate-100">$0<span class="text-lg text-slate-400">/mo</span></div>
+                    <span class="text-xs text-slate-500">(+9% transaction fee)</span>
+                    <p class="text-sm text-slate-400 mt-1">No setup fees</p>
+                </div>
+                <ul class="space-y-3 mb-6">
+                    <li class="flex items-center text-slate-300">
+                        <svg class="w-5 h-5 text-green-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        Dedicated storefront (shopsy.pro/yourbrand)
+                    </li>
+                    <li class="flex items-center text-slate-300">
+                        <svg class="w-5 h-5 text-green-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        Unlimited products, categories & coupons
+                    </li>
+                    <li class="flex items-center text-slate-300">
+                        <svg class="w-5 h-5 text-green-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        Professional storefront design
+                    </li>
+                    <li class="flex items-center text-slate-300">
+                        <svg class="w-5 h-5 text-green-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        30+ cryptocurrency payments
+                    </li>
+                    <li class="flex items-center text-slate-300">
+                        <svg class="w-5 h-5 text-green-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        Customer support ticket system
+                    </li>
+                    <li class="flex items-center text-slate-300">
+                        <svg class="w-5 h-5 text-green-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        Basic analytics dashboard
+                    </li>
+                </ul>
+                <button class="w-full bg-slate-700 text-slate-400 py-3 rounded-lg font-medium cursor-not-allowed">
+                    Current Plan
+                </button>
+            </div>
+
+            <!-- Premium Plan -->
+            <div class="bg-gradient-to-br from-blue-600/20 to-purple-600/20 rounded-xl p-6 border border-blue-500/30 relative">
+                <div class="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                    <span class="bg-gradient-to-r from-blue-500 to-purple-500 text-white px-4 py-1 rounded-full text-sm font-medium">
+                        Most Popular
+                    </span>
+                </div>
+                <div class="text-center mb-6">
+                    <h3 class="text-xl font-semibold text-slate-100 mb-2">Premium Plan</h3>
+                    <div class="text-3xl font-bold text-slate-100">$25<span class="text-lg text-slate-400">/mo</span></div>
+                    <span class="text-xs text-slate-500">(+5% transaction fee)</span>
+                    <p class="text-sm text-slate-400 mt-1">No setup fees</p>
+                </div>
+                <ul class="space-y-3 mb-6">
+                    <li class="flex items-center text-slate-300">
+                        <svg class="w-5 h-5 text-green-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        <strong>Everything in Free, plus:</strong>
+                    </li>
+                    <li class="flex items-center text-slate-300">
+                        <svg class="w-5 h-5 text-green-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        Lower transaction fees (5% vs 9%)
+                    </li>
+                    <li class="flex items-center text-slate-300">
+                        <svg class="w-5 h-5 text-green-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        Priority email support
+                    </li>
+                    <li class="flex items-center text-slate-400">
+                        <svg class="w-5 h-5 text-blue-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        Advanced analytics (coming soon)
+                    </li>
+                    <li class="flex items-center text-slate-400">
+                        <svg class="w-5 h-5 text-blue-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        Stripe Connect (coming soon)
+                    </li>
+                    <li class="flex items-center text-slate-400">
+                        <svg class="w-5 h-5 text-blue-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        PayPal Connect (coming soon)
+                    </li>
+                    <li class="flex items-center text-slate-300">
+                        <svg class="w-5 h-5 text-green-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        Premium themes & customization
+                        <a href="{{ url_for('subscriptions.preview_theme', theme_name='dark-elegance') }}" target="_blank" 
+                           class="ml-2 text-blue-400 hover:text-blue-300 text-xs underline">Preview</a>
+                    </li>
+                    <li class="flex items-center text-slate-400">
+                        <svg class="w-5 h-5 text-blue-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        Telegram notifications (coming soon)
+                    </li>
+                </ul>
+
+                <!-- Currency Selection -->
+                <div class="mb-4">
+                    <label class="block text-slate-300 text-sm font-medium mb-2">Payment Method</label>
+                    <div class="relative">
+                        <select id="currency-select" class="w-full bg-slate-700/80 border border-slate-600/50 rounded-lg px-4 py-3 pr-10 text-slate-100 appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all duration-200 backdrop-blur-sm">
+                            <option value="USDT" data-icon="💰">USDT (Tether)</option>
+                            <option value="BTC" data-icon="₿">Bitcoin</option>
+                            <option value="BNB" data-icon="🔶">Binance Coin</option>
+                        </select>
+                        <!-- Custom dropdown arrow -->
+                        <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                            <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <p class="text-xs text-slate-400 mt-2 flex items-center">
+                        <svg class="w-3 h-3 mr-1 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        $25 USD equivalent - exact amount calculated at checkout
+                    </p>
+                </div>
+
+                <button onclick="createSubscription()" 
+                        class="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white py-3 rounded-lg font-medium transition-all duration-300 transform hover:scale-105">
+                    Upgrade to Premium
+                </button>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Subscription History -->
+        <div class="bg-slate-800/80 rounded-xl p-6 border border-slate-700">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-semibold text-slate-100">Subscription History</h3>
+                <a href="{{ url_for('subscriptions.history') }}" 
+                   class="text-blue-400 hover:text-blue-300 text-sm font-medium transition-colors">
+                    View All
+                </a>
+            </div>
+            
+            <div id="subscription-history" class="space-y-4">
+                <!-- History will be loaded here -->
+                <div class="text-center py-8">
+                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
+                    <p class="text-slate-400 mt-2">Loading history...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+// Countdown timer for pending payment
+function updateCountdown() {
+    const countdownEl = document.getElementById('payment-countdown');
+    if (!countdownEl) return;
+    
+    const expiresAtStr = countdownEl.dataset.expires;
+    if (!expiresAtStr) {
+        countdownEl.textContent = 'no expiry data';
+        return;
+    }
+    
+    // Parse the datetime string ensuring UTC interpretation
+    let expiresAt;
+    if (expiresAtStr.includes('Z')) {
+        expiresAt = new Date(expiresAtStr);
+    } else {
+        // If no Z suffix, add it to ensure UTC parsing
+        expiresAt = new Date(expiresAtStr + 'Z');
+    }
+    
+    const now = new Date();
+    
+    // Debug logging (remove in production)
+    console.log('Expires at string:', expiresAtStr);
+    console.log('Expires at parsed:', expiresAt);
+    console.log('Now:', now);
+    console.log('Time difference (minutes):', (expiresAt - now) / 60000);
+    console.log('UTC now:', now.toISOString());
+    console.log('UTC expires:', expiresAt.toISOString());
+    
+    if (isNaN(expiresAt.getTime())) {
+        countdownEl.textContent = 'invalid date format';
+        countdownEl.className = 'text-red-400 font-medium';
+        return;
+    }
+    
+    const diff = expiresAt - now;
+    
+    if (diff <= 0) {
+        countdownEl.textContent = 'expired';
+        countdownEl.className = 'text-red-400 font-medium';
+        // Stop the countdown interval instead of reloading
+        clearInterval(window.countdownInterval);
+        return;
+    }
+    
+    const totalMinutes = Math.floor(diff / 60000);
+    const seconds = Math.floor((diff % 60000) / 1000);
+    
+    // Format time display
+    if (totalMinutes >= 60) {
+        const hours = Math.floor(totalMinutes / 60);
+        const minutes = totalMinutes % 60;
+        countdownEl.textContent = `${hours}h ${minutes}m ${seconds}s`;
+    } else {
+        countdownEl.textContent = `${totalMinutes}m ${seconds}s`;
+    }
+    
+    // Change color as time runs out
+    if (totalMinutes <= 5) {
+        countdownEl.className = 'text-red-400 font-medium';
+    } else if (totalMinutes <= 15) {
+        countdownEl.className = 'text-yellow-400 font-medium';
+    } else {
+        countdownEl.className = 'text-slate-400';
+    }
+}
+
+// Update countdown every second
+if (document.getElementById('payment-countdown')) {
+    updateCountdown();
+    window.countdownInterval = setInterval(updateCountdown, 1000);
+}
+
+// Create subscription function
+async function createSubscription() {
+    const currency = document.getElementById('currency-select').value;
+    const button = event.target;
+    
+    button.disabled = true;
+    button.innerHTML = '<div class="animate-spin rounded-full h-5 w-5 border-b-2 border-white mx-auto"></div>';
+    
+    try {
+        const response = await fetch('{{ url_for("subscriptions.create_subscription") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: new URLSearchParams({
+                currency: currency
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Open payment link in new tab
+            window.open(data.payment_link, '_blank');
+            
+            // Show success message
+            button.innerHTML = '<svg class="w-5 h-5 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>Payment Link Opened';
+            button.className = 'w-full bg-green-600 text-white py-3 rounded-lg font-medium cursor-default';
+            
+            // Show instruction message and reload page after delay
+            setTimeout(() => {
+                const instruction = document.createElement('div');
+                instruction.className = 'mt-4 p-3 bg-blue-500/20 border border-blue-500/30 rounded-lg text-blue-300 text-sm';
+                instruction.innerHTML = '<strong>Payment window opened!</strong> Refreshing page to show your pending payment...';
+                button.parentNode.appendChild(instruction);
+                
+                // Reload page after 2 seconds to show the new pending payment section
+                setTimeout(() => {
+                    window.location.reload();
+                }, 2000);
+            }, 500);
+        } else {
+            alert('Error: ' + data.error);
+            button.disabled = false;
+            button.innerHTML = 'Upgrade to Premium';
+        }
+    } catch (error) {
+        alert('Error creating subscription: ' + error.message);
+        button.disabled = false;
+        button.innerHTML = 'Upgrade to Premium';
+    }
+}
+
+// Cancel subscription function
+async function cancelSubscription(subscriptionId) {
+    if (!confirm('Are you sure you want to cancel this subscription payment?')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`{{ url_for("subscriptions.cancel_subscription", subscription_id="") }}${subscriptionId}`, {
+            method: 'POST'
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Show success message and then reload page
+            const pendingSection = document.querySelector('.bg-yellow-500\\/10');
+            if (pendingSection) {
+                pendingSection.innerHTML = `
+                    <div class="flex items-start">
+                        <svg class="w-6 h-6 text-green-400 mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        <div class="flex-1">
+                            <h4 class="text-green-400 font-semibold mb-2">Payment Cancelled</h4>
+                            <p class="text-slate-300">Your pending payment has been cancelled. Refreshing page...</p>
+                        </div>
+                    </div>
+                `;
+                pendingSection.className = 'bg-green-500/10 border border-green-500/30 rounded-xl p-6 mb-8';
+                
+                // Reload page after 1.5 seconds to show the updated state (no pending payment, "Upgrade" button available)
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1500);
+            }
+        } else {
+            alert('Error: ' + data.error);
+        }
+    } catch (error) {
+        alert('Error canceling subscription: ' + error.message);
+    }
+}
+
+// Load subscription history
+async function loadSubscriptionHistory() {
+    try {
+        const response = await fetch('{{ url_for("subscriptions.history") }}');
+        const html = await response.text();
+        
+        // Extract just the history items (simplified)
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        const historyItems = doc.querySelectorAll('.subscription-item');
+        
+        const historyContainer = document.getElementById('subscription-history');
+        
+        if (historyItems.length === 0) {
+            historyContainer.innerHTML = `
+                <div class="text-center py-8">
+                    <p class="text-slate-400">No subscription history found</p>
+                </div>
+            `;
+        } else {
+            historyContainer.innerHTML = '';
+            historyItems.forEach((item, index) => {
+                if (index < 3) { // Show only first 3 items
+                    historyContainer.appendChild(item.cloneNode(true));
+                }
+            });
+        }
+    } catch (error) {
+        document.getElementById('subscription-history').innerHTML = `
+            <div class="text-center py-8">
+                <p class="text-red-400">Error loading history</p>
+            </div>
+        `;
+    }
+}
+
+// Load history on page load
+document.addEventListener('DOMContentLoaded', loadSubscriptionHistory);
+</script>
+{% endblock %}

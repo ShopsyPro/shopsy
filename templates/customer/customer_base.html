@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <meta name="description" content="ShopsyPro Customer Order Tracking - Track your orders across all merchants">
+    <meta name="theme-color" content="#1E1E2E">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    
+    <!-- Cache Control Headers -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+
+    <!-- Alpine.js -->
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/alpinejs/3.13.3/cdn.min.js"></script>
+    
+    <!-- Font Links -->
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='assets/default_avatar.png') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <title>{% block title %}ShopsyPro | Order Tracking{% endblock %}</title>
+
+    <!-- Core CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Custom styles -->
+    <style>
+        :root {
+            --primary-color: #1E1E2E;
+            --secondary-color: #2A2A3C;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #1e1e2e 0%, #2a2a3c 100%);
+            min-height: 100vh;
+        }
+
+        /* Flash message styles */
+        .flash-success {
+            background-color: rgba(16, 185, 129, 0.2);
+            color: rgb(16, 185, 129);
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+        
+        .flash-error {
+            background-color: rgba(239, 68, 68, 0.2);
+            color: rgb(239, 68, 68);
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+        
+        .flash-info {
+            background-color: rgba(59, 130, 246, 0.2);
+            color: rgb(59, 130, 246);
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #2a2a3c;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #4a5568;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #718096;
+        }
+
+        /* Glass effect for header */
+        .glass-effect {
+            background: rgba(23, 23, 33, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Font heading class */
+        .font-heading {
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        /* Responsive styles */
+        @media (max-width: 640px) {
+            .btn {
+                min-height: 44px;
+                padding: 0.75rem 1rem;
+                font-size: 1rem;
+            }
+            
+            .card:hover {
+                transform: none;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .btn {
+                min-height: 44px;
+                padding: 0.75rem 1rem;
+                font-size: 1rem;
+            }
+        }
+    </style>
+
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="bg-gray-900 text-white min-h-screen">
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="fixed top-4 right-4 z-50 space-y-2" id="flash-messages">
+                {% for category, message in messages %}
+                    <div class="flash-{{ category }} max-w-md w-full shadow-lg rounded-lg p-4 fade-in">
+                        <div class="flex items-center">
+                            {% if category == 'success' %}
+                                <i class="fas fa-check-circle mr-2"></i>
+                            {% elif category == 'error' %}
+                                <i class="fas fa-exclamation-circle mr-2"></i>
+                            {% else %}
+                                <i class="fas fa-info-circle mr-2"></i>
+                            {% endif %}
+                            <span>{{ message }}</span>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <!-- Header -->
+    <header class="glass-effect sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-4">
+                <a href="{{ url_for('dashboard.home') }}" class="text-2xl font-bold font-heading text-white tracking-tight hover:text-blue-300 transition-colors">
+                    ShopsyPro<span class="text-blue-400">.</span>
+                </a>
+                <nav class="hidden md:flex items-center space-x-4">
+                    {% if session.customer_email and session.customer_otp_verified %}
+                        <!-- Authenticated user navigation -->
+                        {% if request.endpoint == 'orders.customer_orders_support_page' %}
+                            <a href="{{ url_for('orders.customer_orders_dashboard') }}" class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors">
+                                <i class="fas fa-chart-bar mr-2"></i>
+                                Dashboard
+                            </a>
+                        {% elif request.endpoint == 'orders.customer_tickets_page' %}
+                            <a href="{{ url_for('orders.customer_orders_dashboard') }}" class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors">
+                                <i class="fas fa-chart-bar mr-2"></i>
+                                Dashboard
+                            </a>
+                        {% else %}
+                            <a href="{{ url_for('orders.customer_orders_support_page') }}" class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors">
+                                <i class="fas fa-headset mr-2"></i>
+                                Support
+                            </a>
+                        {% endif %}
+                        
+                        {% if request.endpoint != 'orders.customer_tickets_page' %}
+                            <a href="{{ url_for('orders.customer_tickets_page') }}" class="inline-flex items-center px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white text-sm font-medium rounded-lg transition-colors">
+                                <i class="fas fa-ticket-alt mr-2"></i>
+                                My Tickets
+                            </a>
+                        {% endif %}
+                        
+                        <a href="{{ url_for('orders.customer_logout') }}" class="inline-flex items-center px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-colors" title="Logout">
+                            <i class="fas fa-sign-out-alt mr-2"></i>
+                            Logout
+                        </a>
+                    {% else %}
+                        <!-- Unauthenticated user navigation -->
+                        <a href="{{ url_for('orders.track_orders') }}" class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors">
+                            <i class="fas fa-search mr-2"></i>
+                            Track Orders
+                        </a>
+                    {% endif %}
+                </nav>
+                <!-- Mobile menu button -->
+                <button class="md:hidden text-gray-300 hover:text-white transition-colors" onclick="toggleMobileMenu()">
+                    <i class="fas fa-bars text-xl"></i>
+                </button>
+            </div>
+            
+            <!-- Mobile menu -->
+            <div id="mobileMenu" class="md:hidden hidden bg-gray-900/95 backdrop-blur-lg border-t border-gray-700/50">
+                <div class="px-4 py-6 space-y-4">
+                    {% if session.customer_email and session.customer_otp_verified %}
+                        <!-- Authenticated user mobile navigation -->
+                        {% if request.endpoint == 'orders.customer_orders_support_page' %}
+                            <a href="{{ url_for('orders.customer_orders_dashboard') }}" class="block text-gray-300 hover:text-white transition-colors py-2">
+                                <i class="fas fa-chart-bar mr-2"></i>
+                                Dashboard
+                            </a>
+                        {% elif request.endpoint == 'orders.customer_tickets_page' %}
+                            <a href="{{ url_for('orders.customer_orders_dashboard') }}" class="block text-gray-300 hover:text-white transition-colors py-2">
+                                <i class="fas fa-chart-bar mr-2"></i>
+                                Dashboard
+                            </a>
+                        {% else %}
+                            <a href="{{ url_for('orders.customer_orders_support_page') }}" class="block text-gray-300 hover:text-white transition-colors py-2">
+                                <i class="fas fa-headset mr-2"></i>
+                                Support
+                            </a>
+                        {% endif %}
+                        
+                        {% if request.endpoint != 'orders.customer_tickets_page' %}
+                            <a href="{{ url_for('orders.customer_tickets_page') }}" class="block text-gray-300 hover:text-white transition-colors py-2">
+                                <i class="fas fa-ticket-alt mr-2"></i>
+                                My Tickets
+                            </a>
+                        {% endif %}
+                        
+                        <a href="{{ url_for('orders.customer_logout') }}" class="block text-red-400 hover:text-red-300 transition-colors py-2">
+                            <i class="fas fa-sign-out-alt mr-2"></i>
+                            Logout
+                        </a>
+                    {% else %}
+                        <!-- Unauthenticated user mobile navigation -->
+                        <a href="{{ url_for('orders.track_orders') }}" class="block text-gray-300 hover:text-white transition-colors py-2">
+                            <i class="fas fa-search mr-2"></i>
+                            Track Orders
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-1">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Auto-hide flash messages -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const flashMessages = document.getElementById('flash-messages');
+            if (flashMessages) {
+                setTimeout(() => {
+                    flashMessages.style.transition = 'opacity 0.5s ease-out';
+                    flashMessages.style.opacity = '0';
+                    setTimeout(() => {
+                        flashMessages.remove();
+                    }, 500);
+                }, 5000);
+            }
+            
+            // Prevent back/forward navigation issues
+            // Check if this is a customer authenticated page
+            const isCustomerPage = window.location.pathname.includes('/track-orders/');
+            if (isCustomerPage) {
+                // Disable browser back/forward buttons for authenticated pages
+                window.history.pushState(null, null, window.location.href);
+                window.addEventListener('popstate', function() {
+                    window.history.pushState(null, null, window.location.href);
+                    // Redirect to track orders page if user tries to go back
+                    window.location.href = '{{ url_for("orders.track_orders") }}';
+                });
+                
+                // Check session validity every 5 minutes
+                setInterval(function() {
+                    fetch('{{ url_for("orders.extend_customer_session") }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({})
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (!data.success) {
+                            // Session expired, redirect to track orders
+                            window.location.href = '{{ url_for("orders.track_orders") }}';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Session check failed:', error);
+                        // On error, redirect to track orders for safety
+                        window.location.href = '{{ url_for("orders.track_orders") }}';
+                    });
+                }, 300000); // 5 minutes
+            }
+        });
+
+        // Mobile menu functionality
+        function toggleMobileMenu() {
+            const mobileMenu = document.getElementById('mobileMenu');
+            mobileMenu.classList.toggle('hidden');
+        }
+
+
+
+        // Smooth scrolling
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    // Close mobile menu if open
+                    document.getElementById('mobileMenu').classList.add('hidden');
+                    
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+    </script>
+
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html> 

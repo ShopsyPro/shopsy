@@ -1,0 +1,1379 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <title>Shopping Bag | {{ shop_name }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='assets/default_avatar.png') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --background-start-rgb: 23, 23, 33;
+            --background-end-rgb: 31, 41, 55;
+            --primary-start: 96, 165, 250; /* blue-400 */
+            --primary-end: 59, 130, 246; /* blue-600 */
+            --secondary-start: 107, 114, 128; /* gray-500 */
+            --secondary-end: 75, 85, 99; /* gray-600 */
+        }
+
+        html {
+             scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(to bottom, rgb(var(--background-start-rgb)), rgb(var(--background-end-rgb))) fixed;
+            color: #E5E7EB; /* gray-200 */
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .font-heading {
+            font-family: 'Poppins', sans-serif;
+        }
+
+        main {
+            flex: 1;
+        }
+
+        .card {
+            background-color: rgba(31, 41, 55, 0.5); /* gray-800 with opacity */
+            border: 1px solid rgba(75, 85, 99, 0.5); /* gray-600 with opacity */
+            border-radius: 0.75rem; /* rounded-xl */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease-in-out;
+            overflow: hidden;
+        }
+
+        .card:hover {
+            border-color: rgba(96, 165, 250, 0.5); /* blue-400 with opacity */
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.2);
+        }
+
+        .glass-effect {
+            background: rgba(23, 23, 33, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem; /* rounded-lg */
+            transition: all 0.3s ease;
+            border: none;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
+        }
+
+        .btn-primary {
+            color: white;
+            background-image: linear-gradient(to right, rgb(var(--primary-start)), rgb(var(--primary-end)));
+            background-size: 200% auto;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background-position: right center;
+            transform: scale(1.05);
+            box-shadow: 0 7px 15px rgba(var(--primary-start), 0.25);
+        }
+
+        .btn-secondary {
+            background-color: rgba(55, 65, 81, 0.8); /* gray-700 with opacity */
+            color: #D1D5DB; /* gray-300 */
+            border: 1px solid rgba(75, 85, 99, 0.8); /* gray-600 with opacity */
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background-color: rgba(75, 85, 99, 1); /* gray-600 */
+            color: white;
+            transform: translateY(-2px);
+        }
+        
+        .modal-card {
+            background: linear-gradient(145deg, rgb(31, 41, 55), rgb(49, 46, 75));
+            border: 1px solid rgba(75, 85, 99, 0.8);
+        }
+
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { 
+            -webkit-appearance: none; 
+            margin: 0; 
+        }
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+
+        .notification {
+            opacity: 0;
+            transform: translateY(20px) translateX(10px);
+            transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+        }
+        .notification.show {
+            opacity: 1;
+            transform: translateY(0) translateX(0);
+        }
+        @keyframes progress {
+            from { width: 100%; }
+            to { width: 0%; }
+        }
+        .notification .progress-bar {
+            height: 3px;
+            background-color: rgba(255,255,255,0.7);
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            animation-name: progress;
+            animation-timing-function: linear;
+            animation-fill-mode: forwards;
+            border-bottom-left-radius: 0.5rem;
+        }
+
+        /* Custom styles based on the image */
+        .quantity-input {
+            width: 40px; /* Adjust as needed */
+            text-align: center;
+            border-top: 1px solid rgba(75, 85, 99, 0.5);
+            border-bottom: 1px solid rgba(75, 85, 99, 0.5);
+            padding-top: 0.5rem; /* py-2 */
+            padding-bottom: 0.5rem; /* py-2 */
+            background-color: rgba(31, 41, 55, 0.8);
+            color: #E5E7EB;
+        }
+        .quantity-btn {
+            border: 1px solid rgba(75, 85, 99, 0.5);
+            padding: 0.5rem 0.75rem; /* px-3 py-2 */
+            background-color: rgba(55, 65, 81, 0.8);
+            color: #D1D5DB;
+            transition: all 0.3s ease;
+        }
+        .quantity-btn:hover {
+            background-color: rgba(75, 85, 99, 0.8);
+            color: white;
+        }
+        
+        /* Responsive styles */
+        @media (max-width: 640px) {
+            .btn {
+                min-height: 44px;
+                padding: 0.75rem 1rem;
+                font-size: 1rem;
+            }
+            
+            .card:hover {
+                transform: none;
+            }
+            
+            .quantity-btn {
+                min-height: 44px;
+                padding: 0.75rem;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .btn {
+                min-height: 44px;
+                padding: 0.75rem 1rem;
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <!-- Header -->
+    <header class="glass-effect sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-4">
+                <a href="{{ url_for('dashboard.home') }}" class="text-2xl font-bold font-heading text-white tracking-tight hover:text-blue-300 transition-colors">
+                    ShopsyPro<span class="text-blue-400">.</span>
+                </a>
+                <div class="flex items-center">
+                                            <a href="{{ url_for('shop.shop', username=username) }}" class="btn btn-primary text-sm">
+                        <i class="fas fa-arrow-left w-4 h-4 mr-2"></i>
+                        Continue Shopping
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main content -->
+    <main class="flex-grow">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div class="mb-10">
+            <h1 class="text-4xl font-bold font-heading text-white mb-2">Shopping Bag</h1>
+            <p class="text-gray-300"><span id="cart-item-count">{{ cart_items|length }}</span> item{{ 's' if cart_items|length != 1 else '' }} in your bag.</p>
+        </div>
+
+        <div class="flex flex-col lg:flex-row gap-8 xl:gap-12">
+            <!-- Product List (Left Column) -->
+            <div class="w-full lg:w-2/3">
+            {% if cart_items %}
+                    <div class="card p-4 sm:p-6">
+                         <div class="hidden md:flex items-center text-gray-400 text-sm font-medium pb-4 px-2 border-b border-gray-700/80">
+                            <div class="w-2/5">Product</div>
+                            <div class="w-1/5 text-center">Price</div>
+                            <div class="w-1/5 text-center">Quantity</div>
+                            <div class="w-1/5 text-right">Total Price</div>
+                    </div>
+                        {% for item in cart_items %}
+                            <!-- Product Item -->
+                            <div class="flex flex-col md:flex-row items-center py-6 px-2 border-b border-gray-700/50 last:border-b-0" data-product-id="{{ item.product_id }}" data-price="{{ item.price }}" data-stock="{{ product_stocks[item.product_id] }}" data-category-id="{{ item.category_id }}" data-infinite-stock="{{ item.infinite_stock|lower }}" data-duration="{{ item.duration or '' }}">
+                                <div class="w-full md:w-2/5 flex items-start mb-4 md:mb-0">
+                                    <div class="w-24 h-24 bg-gray-800 rounded-lg overflow-hidden mr-4 sm:mr-6 flex-shrink-0">
+                                    {% if item.image_url %}
+                                        <img src="{{ item.image_url }}" alt="{{ item.name }}" class="h-full w-full object-cover">
+                                    {% else %}
+                                            <div class="w-full h-full flex items-center justify-center bg-gray-700 text-gray-500">
+                                                <i class="fas fa-image fa-2x"></i>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                    <div class="flex-grow">
+                                        <p class="text-xs text-blue-400 uppercase tracking-wider font-semibold">{{ item.category_name or 'ALL' }}</p>
+                                        <h3 class="text-lg font-bold text-white mb-1">{{ item.name }}</h3>
+                                        {% if item.duration %}
+                                            <span class="mt-1 inline-block px-2.5 py-1 bg-blue-500/10 text-blue-300 text-xs rounded-full border border-blue-500/20 font-medium">{{ item.duration }}</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="w-full md:w-1/5 text-center md:text-base text-lg font-medium text-gray-200 mb-2 md:mb-0">${{ "%.2f"|format(item.price) }}</div>
+                                <div class="w-full md:w-1/5 flex justify-center items-center mb-4 md:mb-0">
+                                    {% if item.infinite_stock %}
+                                        <div class="flex items-center">
+                                            <span class="px-3 py-2 text-sm font-medium text-purple-300 bg-purple-500/20 border border-purple-500/30 rounded-lg">Unlimited</span>
+                                            <input type="hidden" class="item-quantity" value="1">
+                                        </div>
+                                    {% else %}
+                                        <div class="flex items-center">
+                                            <button class="decrement-quantity quantity-btn rounded-l-md">
+                                                <i class="fas fa-minus w-4 h-4"></i>
+                                                </button>
+                                            <input type="text" class="item-quantity-display quantity-input" value="{{ item.quantity }}" readonly>
+                                            <button class="increment-quantity quantity-btn rounded-r-md">
+                                                <i class="fas fa-plus w-4 h-4"></i>
+                                                </button>
+                                                <input type="hidden" class="item-quantity" value="{{ item.quantity }}">
+                                            </div>
+                                    {% endif %}
+                                    </div>
+                                <div class="w-full md:w-1/5 text-right md:text-base text-lg font-semibold text-blue-400 item-subtotal">${{ "%.2f"|format(item.subtotal) }}</div>
+                                <div class="w-auto md:hidden mt-4">
+                                     <button class="remove-item text-sm text-red-400 hover:text-red-300 flex items-center transition-colors">
+                                        <i class="fas fa-trash-alt w-4 h-4 mr-2"></i>
+                                            Remove
+                                        </button>
+                                    </div>
+                                <div class="hidden md:flex w-auto pl-6">
+                                     <button class="remove-item text-gray-500 hover:text-red-400 transition-colors text-lg">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <!-- Empty Cart -->
+                    <div class="card p-12 text-center">
+                        <div class="mb-6 flex justify-center">
+                            <i class="fas fa-shopping-cart fa-4x text-gray-600"></i>
+                        </div>
+                        <h2 class="text-2xl font-semibold text-white mb-4">Your shopping bag is empty</h2>
+                        <p class="text-gray-400 mb-8">Looks like you haven't added any products yet.</p>
+                        <a href="{{ url_for('shop.shop', username=username) }}" class="btn btn-primary">
+                            <i class="fas fa-store mr-2"></i>
+                            Start Shopping
+                        </a>
+                    </div>
+                {% endif %}
+                    </div>
+                    
+            <!-- Sidebar (Right Column) -->
+            <div class="w-full lg:w-1/3">
+                <div class="card p-6 space-y-6 sticky top-24 z-20 relative">
+                    <!-- Email Section -->
+                    <div>
+                        <h2 class="text-lg font-semibold text-white mb-3">Email Address</h2>
+                        <p class="text-sm text-gray-400 mb-3">Enter your email to apply coupons and proceed.</p>
+                        <input type="email" id="customer-email" class="w-full px-4 py-2.5 border border-gray-600/50 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-700/80 text-white placeholder-gray-400" placeholder="your.email@example.com">
+                        <p id="email-error" class="mt-1 text-sm text-red-400 hidden">Please enter a valid email address.</p>
+                    </div>
+
+                    <hr class="border-gray-700/80">
+
+                    <!-- Coupon Code Section -->
+                    <div>
+                        <h2 class="text-lg font-semibold text-white mb-3">Coupon Code</h2>
+                        <p class="text-sm text-gray-400 mb-3">If you have a coupon code, please apply it below.</p>
+                                <div class="relative">
+                                    <input type="text" id="coupon-code" placeholder="Enter coupon code" 
+                                   class="w-full px-4 py-2.5 border border-gray-600/50 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 pr-24 uppercase disabled:bg-gray-800/50 disabled:cursor-not-allowed bg-gray-700/80 text-white placeholder-gray-400 tracking-wider"
+                                   disabled>
+                            <div class="absolute inset-y-0 right-0 flex items-center">
+                                <button id="apply-coupon" type="button" class="btn btn-secondary h-full rounded-l-none rounded-r-lg text-sm px-5" disabled>
+                                    Apply
+                                        </button>
+                                    </div>
+                                </div>
+                        <div id="coupon-feedback" class="mt-2">
+                            <!-- Coupon status messages will go here -->
+                                {% if coupon_error %}
+                            <p class="text-sm text-red-400">{{ coupon_error }}</p>
+                                {% endif %}
+                                {% if applied_coupon %}
+                            <div class="mt-2 p-3 bg-green-500/10 text-green-300 rounded-lg border border-green-500/20">
+                                <p class="font-medium">Coupon Applied: {{ applied_coupon.code }}</p>
+                                <p class="text-sm">
+                                    {% if applied_coupon.get('type', 'percentage') == 'fixed' %}
+                                        ${{ discount_amount | round(2) }} off (up to ${{ applied_coupon.get('discount_value', 0) | round(2) }})
+                                    {% else %}
+                                        {{ applied_coupon.get('discount_value', applied_coupon.discount_percentage) | round(1) }}% off (-${{ discount_amount | round(2) }})
+                                    {% endif %}
+                                    {% if applied_coupon.category_name %} ({{ applied_coupon.category_name }} only){% endif %}
+                                </p>
+                                <button id="remove-coupon" type="button" class="mt-1 text-xs text-red-400 hover:text-red-300 underline">Remove coupon</button>
+                                </div>
+                                {% endif %}
+                        </div>
+                            </div>
+                            
+                    <hr class="border-gray-700/80">
+
+                    <!-- Cart Totals Section -->
+                    <div class="bg-gray-800/30 rounded-lg p-5 border border-gray-700/50">
+                        <h2 class="text-xl font-semibold text-white mb-4">Cart Total</h2>
+                        <div class="space-y-3 text-gray-300">
+                            <div class="flex justify-between">
+                                <span>Cart Subtotal</span>
+                                <span class="cart-subtotal-display font-medium">${{ (total_amount if not applied_coupon else total_amount + discount_amount) | round(2) }}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Discount</span>
+                                <span class="cart-discount-display font-medium">{% if applied_coupon %}-${{ discount_amount | round(2) }}{% else %}$0.00{% endif %}</span>
+                            </div>
+                            <div class="flex justify-between text-lg font-bold text-white">
+                                <span>Total</span>
+                                <span class="cart-total-display">${{ total_amount | round(2) }}</span>
+                            </div>
+                    </div>
+                        <button id="checkout" class="mt-6 w-full btn btn-primary relative z-20">
+                            <i class="fas fa-shield-alt mr-2"></i>
+                            Proceed to Checkout
+                        </button>
+                    </div>
+                </div>
+                    </div>
+        </div>
+    </div>
+    </main>
+
+    {% include 'components/footer.html' %}
+
+    <!-- Checkout Modal -->
+    <div id="checkoutModal" class="hidden fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center px-4 py-8 backdrop-blur-sm">
+      <div class="modal-card rounded-lg shadow-xl w-full max-w-lg mx-auto overflow-y-auto max-h-full text-white">
+        <div class="p-6">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-semibold font-heading">Order Summary</h2>
+                <button id="closeCheckoutModal" class="text-gray-400 hover:text-white transition-colors">
+                    <i class="fas fa-times fa-lg"></i>
+            </button>
+            </div>
+            
+            <p id="checkout-item-count" class="text-sm text-gray-400 mb-4">X items in your bag.</p>
+
+            <!-- Mini Product List in Modal -->
+            <div id="checkout-product-list" class="space-y-3 mb-6 max-h-60 overflow-y-auto pr-2">
+                <!-- Product items will be injected here by JavaScript -->
+              </div>
+              
+            <hr class="border-gray-700 my-4">
+
+            <!-- Totals in Modal -->
+            <div class="space-y-2 mb-6 text-gray-300">
+                <div class="flex justify-between">
+                    <span>Subtotal</span>
+                    <span class="checkout-modal-subtotal font-medium">$0.00</span>
+                </div>
+                <div class="flex justify-between text-green-400 checkout-modal-discount-row hidden">
+                    <span class="checkout-modal-discount-description">Discount</span>
+                    <span class="checkout-modal-discount-amount font-medium">-$0.00</span>
+                </div>
+                <hr class="border-gray-700 my-2">
+                <div class="flex justify-between font-bold text-white text-lg">
+                    <span>Total</span>
+                    <span id="checkout-total-amount" class="checkout-modal-total">$0.00</span>
+                </div>
+            </div>
+            
+            <hr class="border-gray-700 my-4">
+
+            <!-- Delivery Email Section -->
+              <div>
+                <h3 class="text-lg font-semibold mb-2">Delivery Email</h3>
+                <p id="modal-delivery-email" class="text-gray-200 bg-gray-800/50 p-3 rounded-md border border-gray-700"></p>
+            </div>
+
+            <form id="checkoutForm" class="mt-6">
+                 <!-- Payment Method Selection -->
+                <div class="mb-6">
+  <h3 class="text-lg font-semibold text-white mb-3">Payment Method</h3>
+  <div class="p-3 rounded-lg border bg-gray-700/50 border-blue-400 flex items-center">
+    <svg class="w-6 h-6 text-blue-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+    <span class="ml-2 block text-sm font-medium text-gray-200">Pay securely with any supported cryptocurrency via Cryptomus</span>
+  </div>
+</div>
+                <!-- Crypto Selection Section in Checkout Modal (Styled Dropdown) -->
+<div class="mb-6">
+  <label for="crypto-select" class="block text-sm font-semibold text-white mb-2">Choose your cryptocurrency</label>
+  <div class="relative">
+    <select id="crypto-select" class="w-full px-4 py-3 pr-10 rounded-xl bg-gray-800 text-white border-2 border-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 shadow-lg transition-all duration-200 appearance-none cursor-pointer text-base font-medium">
+      <option value="USDT">USDT (Tether)</option>
+      <option value="BTC">BTC (Bitcoin)</option>
+      <option value="ETH">ETH (Ethereum)</option>
+      <option value="BNB">BNB (Binance Coin)</option>
+      <option value="SOL">SOL (Solana)</option>
+      <option value="USDC">USDC (USD Coin)</option>
+      <option value="DOGE">DOGE (Dogecoin)</option>
+      <option value="TRX">TRX (Tron)</option>
+      <option value="AVAX">AVAX (Avalanche)</option>
+      <option value="BCH">BCH (Bitcoin Cash)</option>
+      <option value="LINK">LINK (Chainlink)</option>
+      <option value="LTC">LTC (Litecoin)</option>
+      <option value="DAI">DAI (Dai)</option>
+      <option value="UNI">UNI (Uniswap)</option>
+      <option value="AAVE">AAVE (Aave)</option>
+      <option value="CRV">CRV (Curve)</option>
+      <option value="XCN">XCN (Chain)</option>
+      <option value="SUSHI">SUSHI (SushiSwap)</option>
+      <option value="RSR">RSR (Reserve Rights)</option>
+      <option value="APE">APE (ApeCoin)</option>
+      <option value="AXS">AXS (Axie Infinity)</option>
+      <option value="DYDX">DYDX (dYdX)</option>
+      <option value="FET">FET (Fetch.ai)</option>
+      <option value="SHIB">SHIB (Shiba Inu)</option>
+      <option value="PEPE">PEPE (Pepe)</option>
+      <option value="BONK">BONK (Bonk)</option>
+      <option value="ORCA">ORCA (Orca)</option>
+      <option value="JUP">JUP (Jupiter)</option>
+      <option value="ZBCN">ZBCN (Zebec Network)</option>
+      <option value="COMP">COMP (Compound)</option>
+    </select>
+    <span class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-4">
+      <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+    </span>
+  </div>
+  <input type="hidden" id="selected-crypto" name="selected-crypto" value="USDT">
+</div>
+<style>
+  #crypto-select::-ms-expand { display: none; }
+  #crypto-select option {
+    background: #23272f;
+    color: #fff;
+    font-size: 1rem;
+    padding: 0.75rem 1.5rem;
+  }
+  #crypto-select:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px #3b82f6;
+  }
+</style>
+                <button type="submit" id="pay-button" class="w-full btn btn-primary text-base">
+                  Pay $0.00
+                </button>
+            </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Notification Container -->
+    <div id="notification-container" class="fixed bottom-5 right-5 z-[100] w-full max-w-sm space-y-3 pointer-events-none"></div>
+
+    <!-- Confirm Clear Cart Modal -->
+    <div id="clearCartModal" class="hidden fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center backdrop-blur-sm">
+      <div class="modal-card p-6 rounded-lg shadow-xl w-full max-w-md mx-4 text-white">
+        <h2 class="text-xl font-bold mb-4 font-heading">Clear Cart</h2>
+        <p class="mb-6 text-gray-300">Are you sure you want to clear all items from your cart?</p>
+        <div class="flex justify-end gap-3">
+          <button id="cancelClearCart" class="btn btn-secondary">Cancel</button>
+          <button id="confirmClearCart" class="btn bg-red-600 hover:bg-red-700 text-white">Clear Cart</button>
+          </div>
+      </div>
+    </div>
+
+    <!-- Cart JavaScript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const username = "{{ username }}";
+            let customerEmailValidated = false; // New state variable
+            
+            // Store coupon information from server
+            let couponApplied = {% if applied_coupon %}true{% else %}false{% endif %};
+            let couponType = "{% if applied_coupon %}{{ applied_coupon.type }}{% else %}percentage{% endif %}";
+            let couponDiscountValue = {% if applied_coupon %}{{ applied_coupon.discount_value }}{% else %}0{% endif %};
+            let couponPercentage = {% if applied_coupon %}{{ applied_coupon.discount_percentage | float }}{% else %}0{% endif %};
+            let couponMaxCap = {% if applied_coupon and applied_coupon.max_cap %}{{ applied_coupon.max_cap }}{% else %}0{% endif %};
+            let couponMinOrderValue = {% if applied_coupon and applied_coupon.min_order_value %}{{ applied_coupon.min_order_value }}{% else %}0{% endif %};
+            let couponCategoryId = "{% if applied_coupon and applied_coupon.category_id %}{{ applied_coupon.category_id }}{% endif %}";
+            let couponCategoryName = "{% if applied_coupon and applied_coupon.category_name %}{{ applied_coupon.category_name }}{% endif %}";
+
+            const couponCodeInput = document.getElementById('coupon-code');
+            const applyCouponButton = document.getElementById('apply-coupon');
+            const removeCouponButton = document.getElementById('remove-coupon'); // This might be dynamically created
+            const couponFeedbackDiv = document.getElementById('coupon-feedback');
+            
+            const customerEmailInput = document.getElementById('customer-email');
+            const emailErrorMsg = document.getElementById('email-error');
+
+            const cartSubtotalDisplay = document.querySelector('.cart-subtotal-display');
+            const cartDiscountDisplay = document.querySelector('.cart-discount-display');
+            const cartTotalDisplay = document.querySelector('.cart-total-display');
+            
+            const checkoutModalSubtotal = document.querySelector('.checkout-modal-subtotal');
+            const checkoutModalDiscountRow = document.querySelector('.checkout-modal-discount-row');
+            const checkoutModalDiscountAmount = document.querySelector('.checkout-modal-discount-amount');
+            const checkoutModalTotal = document.querySelector('.checkout-modal-total');
+            const modalCustomerEmailInput = document.getElementById('modal-customer-email');
+            const cartItemCountSpan = document.getElementById('cart-item-count');
+
+            // Auto-refresh intervals
+            let stockRefreshInterval;
+            let priceRefreshInterval;
+
+            function validateEmail(email) {
+                const re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+                return re.test(String(email).toLowerCase());
+            }
+
+            function updateCouponSectionState() {
+                if (customerEmailValidated) {
+                    couponCodeInput.disabled = false;
+                    applyCouponButton.disabled = false;
+                    if (couponApplied) { // If a coupon is already applied and email becomes valid
+                        couponCodeInput.disabled = true;
+                        applyCouponButton.classList.add('hidden');
+                        // Ensure remove button is visible and functional
+                        let currentRemoveBtn = document.getElementById('remove-coupon');
+                        if (!currentRemoveBtn && couponFeedbackDiv.querySelector('.bg-green-500/10')) { // Check if applied coupon UI is there
+                             recreateRemoveButton(); // Create it if missing
+                        } else if (currentRemoveBtn) {
+                            currentRemoveBtn.disabled = false;
+                        }
+                    } else {
+                         applyCouponButton.classList.remove('hidden');
+                    }
+                } else {
+                    couponCodeInput.disabled = true;
+                    applyCouponButton.disabled = true;
+                    if (couponApplied){ // If email becomes invalid while coupon is applied
+                        // Disable remove button but don't show warning notification
+                        let currentRemoveBtn = document.getElementById('remove-coupon');
+                        if(currentRemoveBtn) currentRemoveBtn.disabled = true;
+                        // Removed the automatic warning notification to prevent spam
+                    }
+                }
+                
+                // Additional validation: ensure all coupon-related buttons respect email validation
+                const allRemoveButtons = document.querySelectorAll('#remove-coupon');
+                allRemoveButtons.forEach(btn => {
+                    if (!customerEmailValidated) {
+                        btn.disabled = true;
+                    } else {
+                        btn.disabled = false;
+                    }
+                });
+            }
+            
+            function recreateRemoveButton() {
+                let existingAppliedCouponDiv = couponFeedbackDiv.querySelector('.bg-green-500/10');
+                if (!existingAppliedCouponDiv) return; // No applied coupon UI to attach to
+
+                let currentRemoveBtn = document.getElementById('remove-coupon');
+                if (currentRemoveBtn) currentRemoveBtn.remove(); // Remove if it somehow exists orphaned
+
+                const newRemoveBtn = document.createElement('button');
+                newRemoveBtn.id = 'remove-coupon';
+                newRemoveBtn.type = 'button';
+                newRemoveBtn.className = 'mt-1 text-xs text-red-400 hover:text-red-300 underline';
+                newRemoveBtn.textContent = 'Remove coupon';
+                newRemoveBtn.addEventListener('click', function(e) {
+                    // Check if email is valid before allowing coupon removal
+                    if (!customerEmailValidated) {
+                        e.preventDefault();
+                        showNotification('Please enter a valid email address to manage coupons.', 'warning');
+                        customerEmailInput.focus();
+                        return;
+                    }
+                    removeCoupon();
+                });
+                existingAppliedCouponDiv.appendChild(newRemoveBtn);
+                if (!customerEmailValidated) newRemoveBtn.disabled = true;
+            }
+
+
+            customerEmailInput.addEventListener('input', function() {
+                if (validateEmail(this.value)) {
+                    emailErrorMsg.classList.add('hidden');
+                    customerEmailValidated = true;
+                    sessionStorage.setItem('customerEmail', this.value); // Store email
+                } else {
+                    if (this.value.trim() === '') {
+                        // Don't show error for empty field
+                        emailErrorMsg.classList.add('hidden');
+                    } else {
+                        emailErrorMsg.classList.remove('hidden');
+                    }
+                    customerEmailValidated = false;
+                    sessionStorage.removeItem('customerEmail');
+                }
+                updateCouponSectionState();
+            });
+            
+            // Add blur event to validate on leaving the field
+            customerEmailInput.addEventListener('blur', function() {
+                if (this.value.trim() !== '' && !validateEmail(this.value)) {
+                    emailErrorMsg.classList.remove('hidden');
+                    customerEmailValidated = false;
+                }
+            });
+            
+            // Check sessionStorage for existing email on load
+            const storedEmail = sessionStorage.getItem('customerEmail');
+            if (storedEmail && validateEmail(storedEmail)) {
+                customerEmailInput.value = storedEmail;
+                customerEmailValidated = true;
+                emailErrorMsg.classList.add('hidden');
+            }
+            updateCouponSectionState(); // Initial state based on stored email
+
+            // Cart refresh functionality
+            async function refreshCartData(showNotificationOnChanges = false) {
+                try {
+                    const response = await fetch(`/api/cart/refresh/${username}`);
+                    const result = await response.json();
+                    
+                    if (result.success && result.changes_detected) {
+                        if (showNotificationOnChanges) {
+                            showNotification('Cart updated with latest stock and prices', 'info');
+                            // Wait a moment for user to see the notification
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 1500);
+                        } else {
+                            // Immediate refresh for automatic updates
+                            window.location.reload();
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error refreshing cart data:', error);
+                }
+            }
+            
+            // Start auto-refresh intervals
+            function startAutoRefresh() {
+                // Clear existing intervals
+                if (stockRefreshInterval) clearInterval(stockRefreshInterval);
+                if (priceRefreshInterval) clearInterval(priceRefreshInterval);
+                
+                // Stock refresh every 60-100 seconds (random interval)
+                const stockInterval = 60000 + Math.random() * 40000; // 60-100 seconds
+                stockRefreshInterval = setInterval(refreshCartData, stockInterval);
+                
+                // Price refresh every 120-180 seconds (random interval)
+                const priceInterval = 120000 + Math.random() * 60000; // 120-180 seconds
+                priceRefreshInterval = setInterval(refreshCartData, priceInterval);
+                
+                // Email validation state check every 30 seconds to ensure consistency
+                setInterval(() => {
+                    if (customerEmailInput.value && !validateEmail(customerEmailInput.value)) {
+                        customerEmailValidated = false;
+                        updateCouponSectionState();
+                    }
+                }, 30000);
+            }
+            
+            // Cleanup intervals on page unload to prevent memory leaks
+            window.addEventListener('beforeunload', function() {
+                if (stockRefreshInterval) clearInterval(stockRefreshInterval);
+                if (priceRefreshInterval) clearInterval(priceRefreshInterval);
+            });
+            
+            // Clear coupon on page load (don't remember coupons) - now handled by backend
+            function clearCouponOnLoad() {
+                // Backend automatically clears coupons on cart page load
+                // Just reset frontend variables to ensure UI is clean
+                couponApplied = false;
+                couponType = "";
+                couponDiscountValue = 0;
+                couponPercentage = 0;
+                couponMaxCap = 0;
+                couponMinOrderValue = 0;
+                couponCategoryId = "";
+                couponCategoryName = "";
+                couponFeedbackDiv.innerHTML = '';
+            }
+
+            // Custom notification system
+            function showNotification(message, type = 'info', duration = 5000) {
+                const container = document.getElementById('notification-container');
+                if (!container) return;
+                
+                // Clear existing notifications of the same type and message to prevent spam
+                const existingNotifications = container.querySelectorAll('.notification');
+                existingNotifications.forEach(existing => {
+                    const existingMessage = existing.querySelector('p').textContent;
+                    if (existingMessage === message) {
+                        removeUINotification(existing);
+                    }
+                });
+                
+                const notification = document.createElement('div');
+                let iconHTML;
+                const baseClasses = 'notification shadow-2xl rounded-lg overflow-hidden relative text-white max-w-sm pointer-events-auto ring-1 ring-black ring-opacity-10';
+
+                switch(type) {
+                    case 'success': 
+                        notification.className = `${baseClasses} bg-gradient-to-br from-green-500 to-green-600`;
+                        iconHTML = '<i class="fas fa-check-circle"></i>'; break;
+                    case 'error': 
+                        notification.className = `${baseClasses} bg-gradient-to-br from-red-500 to-red-600`;
+                        iconHTML = '<i class="fas fa-times-circle"></i>'; break;
+                    case 'warning':
+                        notification.className = `${baseClasses} bg-gradient-to-br from-yellow-500 to-yellow-600`;
+                        iconHTML = '<i class="fas fa-exclamation-triangle"></i>'; break;
+                    default: 
+                        notification.className = `${baseClasses} bg-gradient-to-br from-blue-500 to-blue-600`;
+                        iconHTML = '<i class="fas fa-info-circle"></i>'; break;
+                }
+                notification.innerHTML = 
+                    `<div class="p-4 flex items-start space-x-3">
+                        <div class="text-xl mt-0.5 flex-shrink-0">${iconHTML}</div>
+                        <div class="flex-grow"><p class="font-semibold">${message}</p></div>
+                        <button class="ml-auto -mr-1 -mt-1 p-1 rounded-full hover:bg-white/20 transition-colors close-notification">
+                            <i class="fas fa-times text-sm"></i>
+                        </button>
+                    </div>
+                    <div class="progress-bar" style="animation-duration: ${duration/1000}s"></div>`;
+                
+                container.appendChild(notification);
+                
+                // Trigger animation
+                requestAnimationFrame(() => {
+                    notification.classList.add('show');
+                });
+                
+                const closeBtn = notification.querySelector('.close-notification');
+                const timeoutId = setTimeout(() => removeUINotification(notification), duration);
+
+                closeBtn.addEventListener('click', () => {
+                    clearTimeout(timeoutId);
+                    removeUINotification(notification);
+                });
+            }
+
+            function removeUINotification(notification) {
+                if (!notification) return;
+                notification.classList.remove('show');
+                // Remove the element from the DOM after the animation completes
+                setTimeout(() => {
+                    notification.remove();
+                }, 300);
+            }
+
+            function updateTotalDisplay() {
+                let currentSubtotal = 0;
+                document.querySelectorAll('[data-product-id]').forEach(container => {
+                    const price = parseFloat(container.dataset.price);
+                    const quantity = parseInt(container.querySelector('.item-quantity').value, 10);
+                    currentSubtotal += price * quantity;
+                });
+
+                let discountValue = 0;
+                if (couponApplied && (couponPercentage > 0 || couponDiscountValue > 0)) {
+                    if (couponCategoryId) { // Category specific coupon
+                        let categorySubtotal = 0;
+                        document.querySelectorAll('[data-product-id]').forEach(container => {
+                            if (container.dataset.categoryId === couponCategoryId) {
+                                const price = parseFloat(container.dataset.price);
+                                const quantity = parseInt(container.querySelector('.item-quantity').value, 10);
+                                categorySubtotal += price * quantity;
+                            }
+                        });
+                        
+                        if (couponType === 'fixed') {
+                            // For fixed coupons, check minimum order value
+                            if (couponMinOrderValue > 0 && categorySubtotal < couponMinOrderValue) {
+                                discountValue = 0; // Minimum order value not met
+                            } else {
+                                discountValue = Math.min(couponDiscountValue, categorySubtotal);
+                            }
+                        } else { // percentage
+                            discountValue = (categorySubtotal * couponPercentage) / 100;
+                            if (couponMaxCap > 0 && discountValue > couponMaxCap) {
+                                discountValue = couponMaxCap;
+                            }
+                        }
+                    } else { // General coupon
+                        if (couponType === 'fixed') {
+                            // For fixed coupons, check minimum order value
+                            if (couponMinOrderValue > 0 && currentSubtotal < couponMinOrderValue) {
+                                discountValue = 0; // Minimum order value not met
+                            } else {
+                                discountValue = Math.min(couponDiscountValue, currentSubtotal);
+                            }
+                        } else { // percentage
+                            discountValue = (currentSubtotal * couponPercentage) / 100;
+                            if (couponMaxCap > 0 && discountValue > couponMaxCap) {
+                                discountValue = couponMaxCap;
+                            }
+                        }
+                    }
+                }
+                
+                // Round all values to 2 decimal places for consistency
+                currentSubtotal = Math.round(currentSubtotal * 100) / 100;
+                discountValue = Math.round(discountValue * 100) / 100;
+                const finalTotal = Math.round((currentSubtotal - discountValue) * 100) / 100;
+
+                if(cartSubtotalDisplay) cartSubtotalDisplay.textContent = '$' + currentSubtotal.toFixed(2);
+                if(cartDiscountDisplay) cartDiscountDisplay.textContent = '-$' + discountValue.toFixed(2);
+                if(cartTotalDisplay) cartTotalDisplay.textContent = '$' + finalTotal.toFixed(2);
+
+                // Update checkout modal totals
+                if(checkoutModalSubtotal) checkoutModalSubtotal.textContent = '$' + currentSubtotal.toFixed(2);
+                if(checkoutModalDiscountRow) {
+                    if(discountValue > 0) {
+                        checkoutModalDiscountRow.classList.remove('hidden');
+                        if(checkoutModalDiscountAmount) checkoutModalDiscountAmount.textContent = '-$' + discountValue.toFixed(2);
+                        // Update discount description in modal
+                        const discountDescSpan = checkoutModalDiscountRow.querySelector('.checkout-modal-discount-description');
+                        if (discountDescSpan) {
+                            if (couponType === 'fixed') {
+                                discountDescSpan.textContent = `Discount ($${discountValue.toFixed(2)} off${couponCategoryName ? ' on ' + couponCategoryName : ''})`;
+                            } else {
+                                discountDescSpan.textContent = `Discount (${couponPercentage.toFixed(1)}%${couponCategoryName ? ' on ' + couponCategoryName : ''})`;
+                            }
+                        }
+
+                    } else {
+                        checkoutModalDiscountRow.classList.add('hidden');
+                    }
+                }
+                if(checkoutModalTotal) checkoutModalTotal.textContent = '$' + finalTotal.toFixed(2);
+                
+                return { subtotal: currentSubtotal, discount: discountValue, total: finalTotal };
+            }
+            
+            function updateCartHeader() {
+                const itemCount = document.querySelectorAll('[data-product-id]').length;
+                if (cartItemCountSpan) {
+                    cartItemCountSpan.textContent = itemCount;
+                    const parentP = cartItemCountSpan.parentElement;
+                    if (parentP) {
+                        parentP.innerHTML = `<span id="cart-item-count">${itemCount}</span> item${itemCount !== 1 ? 's' : ''} in your bag.`;
+                    }
+                }
+            }
+
+            // Initial call to set totals from server-rendered values or recalculate
+            updateTotalDisplay(); 
+
+            // Track update progress to prevent race conditions
+            let updateInProgress = false;
+            
+            document.querySelectorAll('.increment-quantity, .decrement-quantity').forEach(button => {
+                button.addEventListener('click', async function() {
+                    // Prevent race conditions by blocking multiple simultaneous updates
+                    if (updateInProgress) return;
+                    
+                    const container = this.closest('[data-product-id]');
+                    const isInfiniteStock = container.dataset.infiniteStock === 'true';
+                    
+                    // Skip quantity changes for infinite stock products
+                    if (isInfiniteStock) {
+                        showNotification('This is an infinite stock product. Quantity is fixed at 1.', 'info');
+                        return;
+                    }
+                    
+                    updateInProgress = true;
+                    this.disabled = true; // Disable button during update
+                    
+                    try {
+                        const quantityInput = container.querySelector('.item-quantity');
+                        const quantityDisplay = container.querySelector('.item-quantity-display');
+                        let currentVal = parseInt(quantityInput.value, 10);
+                        const maxStock = parseInt(container.dataset.stock, 10);
+
+                        if (this.classList.contains('increment-quantity')) {
+                            if (currentVal < maxStock) currentVal++;
+                            else showNotification('Maximum stock reached for this item.', 'warning');
+                        } else {
+                            if (currentVal > 1) currentVal--;
+                        }
+                        quantityInput.value = currentVal;
+                        quantityDisplay.value = currentVal; // Assuming quantityDisplay is also an input for styling
+                        
+                        const price = parseFloat(container.dataset.price);
+                        container.querySelector('.item-subtotal').textContent = '$' + (price * currentVal).toFixed(2);
+                        
+                        await updateCartItem(container.dataset.productId, currentVal);
+                        updateTotalDisplay();
+                    } finally {
+                        updateInProgress = false;
+                        this.disabled = false; // Re-enable button after update
+                    }
+                });
+            });
+
+            document.querySelectorAll('.remove-item').forEach(button => {
+                button.addEventListener('click', function() {
+                    const container = this.closest('[data-product-id]');
+                    const productId = container.dataset.productId;
+                    const duration = container.querySelector('[data-duration]')?.dataset.duration;
+                    removeCartItem(productId, container, duration);
+                });
+            });
+
+            async function updateCartItem(productId, quantity, duration=null) {
+                try {
+                    const response = await fetch('/api/cart/update', {
+                        method: 'POST', headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({ product_id: productId, quantity: quantity, username: username, duration: duration })
+                    });
+                    const data = await response.json();
+                    if (!data.success) showNotification(data.message || 'Failed to update cart item.', 'error');
+                    // Totals are updated visually by updateTotalDisplay already
+                } catch (error) {
+                    console.error('Error updating cart:', error);
+                    showNotification('An error occurred while updating item quantity.', 'error');
+                }
+            }
+
+            async function removeCartItem(productId, containerElement, duration=null) {
+                try {
+                    const response = await fetch('/api/cart/remove', {
+                        method: 'POST', headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({ product_id: productId, username: username, duration: duration })
+                    });
+                    const data = await response.json();
+                    if (data.success) {
+                        containerElement.remove();
+                        showNotification('Item removed successfully.', 'success');
+                        updateTotalDisplay();
+                        updateCartHeader();
+                        if (document.querySelectorAll('[data-product-id]').length === 0) {
+                            // Reload or show empty cart message more dynamically
+                            // For simplicity, redirecting to cart which will show empty state
+                             window.location.href = `/${username}/cart`;
+                     }
+                 } else {
+                        showNotification(data.message || 'Failed to remove item.', 'error');
+                 }
+                } catch (error) {
+                    console.error('Error removing item:', error);
+                    showNotification('An error occurred while removing the item.', 'error');
+                }
+            }
+            
+            if (applyCouponButton) {
+                applyCouponButton.addEventListener('click', function() {
+                    if (!customerEmailValidated) {
+                        showNotification('Please enter a valid email address first.', 'warning');
+                        customerEmailInput.focus();
+                        return;
+                    }
+                    const code = couponCodeInput.value.trim().toUpperCase();
+                    if (!code) {
+                        showNotification('Please enter a coupon code.', 'warning');
+                        return;
+                    }
+                    applyCoupon(code);
+                });
+            }
+            
+            // Attach remove coupon listener if button already exists (e.g. page load with coupon)
+            const initialRemoveBtn = document.getElementById('remove-coupon');
+            if (initialRemoveBtn) {
+                initialRemoveBtn.addEventListener('click', removeCoupon);
+            }
+
+
+            async function applyCoupon(couponCode) {
+                if (!customerEmailValidated) { // Double check
+                    showNotification('Email not validated.', 'error');
+                    return;
+            }
+                applyCouponButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Applying...';
+                applyCouponButton.disabled = true;
+
+                try {
+                    const response = await fetch('/api/cart/apply-coupon', {
+                        method: 'POST', headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({ code: couponCode, username: username, email: customerEmailInput.value }) // Send email with coupon
+                    });
+                    const result = await response.json();
+
+                    if (result.success) {
+                        couponApplied = true;
+                        couponType = result.coupon.type;
+                        couponDiscountValue = result.coupon.discount_value;
+                        couponPercentage = parseFloat(result.coupon.discount_percentage) || 0;
+                        couponMaxCap = result.coupon.max_cap || 0;
+                        couponMinOrderValue = result.coupon.min_order_value || 0;
+                        couponCategoryId = result.coupon.category_id || "";
+                        couponCategoryName = result.coupon.category_name || "";
+                        
+                        couponCodeInput.value = result.coupon.code;
+                        couponCodeInput.disabled = true;
+                        applyCouponButton.classList.add('hidden');
+
+                        // Create appropriate discount display text
+                        let discountText;
+                        if (result.coupon.type === 'fixed') {
+                            // For fixed coupons, we'll update this after calculating the actual discount
+                            // First apply the coupon, then update the display with actual discount
+                            discountText = `$${result.coupon.discount_value} off (up to $${result.coupon.discount_value})`;
+                        } else {
+                            // For percentage coupons, we'll update this after calculating the actual discount
+                            discountText = `${result.coupon.discount_percentage}% off`;
+                        }
+
+                        couponFeedbackDiv.innerHTML = `
+                            <div class="mt-2 p-3 bg-green-500/10 text-green-300 rounded-lg border border-green-500/20">
+                                <p class="font-medium">Coupon Applied: ${result.coupon.code}</p>
+                                <p class="text-sm">${discountText} ${result.coupon.category_name ? `(${result.coupon.category_name} only)` : ''}</p>
+                                <button id="remove-coupon" type="button" class="mt-1 text-xs text-red-400 hover:text-red-300 underline">Remove coupon</button>
+                            </div>`;
+                        document.getElementById('remove-coupon').addEventListener('click', removeCoupon);
+                        
+                        showNotification('Coupon applied successfully!', 'success');
+                        
+                        // Update totals first, then update the coupon display with actual discount
+                        const totals = updateTotalDisplay();
+                        
+                        // Now update the coupon display to show actual discount applied
+                        const discountTextElement = couponFeedbackDiv.querySelector('.text-sm');
+                        if (discountTextElement) {
+                            if (result.coupon.type === 'fixed') {
+                                const actualDiscount = totals.discount;
+                                const maxDiscount = result.coupon.discount_value;
+                                discountTextElement.textContent = `$${actualDiscount.toFixed(2)} off (up to $${maxDiscount.toFixed(2)}) ${result.coupon.category_name ? `(${result.coupon.category_name} only)` : ''}`;
+                            } else {
+                                // For percentage coupons, show percentage and actual discount amount
+                                const actualDiscount = totals.discount;
+                                const percentage = result.coupon.discount_percentage;
+                                discountTextElement.textContent = `${percentage}% off (-$${actualDiscount.toFixed(2)}) ${result.coupon.category_name ? `(${result.coupon.category_name} only)` : ''}`;
+                            }
+                        }
+                    } else {
+                        // Clear any existing coupon feedback on failure
+                        couponApplied = false;
+                        couponType = "";
+                        couponDiscountValue = 0;
+                        couponPercentage = 0.0;
+                        couponMaxCap = 0;
+                        couponMinOrderValue = 0;
+                        couponCategoryId = "";
+                        couponCategoryName = "";
+                        couponFeedbackDiv.innerHTML = '';
+                        
+                        showNotification(result.message || 'Failed to apply coupon.', 'error');
+                        applyCouponButton.innerHTML = 'Apply';
+                        applyCouponButton.disabled = !customerEmailValidated; // Re-enable if email is valid
+                        updateTotalDisplay(); // Recalculate totals without coupon
+                    }
+                } catch (error) {
+                    console.error('Error applying coupon:', error);
+                    showNotification('An error occurred while applying the coupon.', 'error');
+                    applyCouponButton.innerHTML = 'Apply';
+                    applyCouponButton.disabled = !customerEmailValidated; // Re-enable if email is valid
+                }
+                updateCouponSectionState(); // Re-check general coupon section state
+            }
+
+            async function removeCoupon() {
+                // Validate email before allowing coupon removal
+                if (!customerEmailValidated) {
+                    showNotification('Please enter a valid email address to manage coupons.', 'warning');
+                    customerEmailInput.focus();
+                    return;
+                }
+                
+                // Consider adding loading state to remove button if desired
+                let currentRemoveBtn = document.getElementById('remove-coupon');
+                if(currentRemoveBtn) currentRemoveBtn.disabled = true;
+
+                try {
+                    const response = await fetch('/api/cart/remove-coupon', {
+                        method: 'POST', headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({ username: username, email: customerEmailInput.value }) // Send email with removal
+                    });
+                    const result = await response.json();
+                    if (result.success) {
+                        // Clear coupon data
+                        couponApplied = false;
+                        couponType = "";
+                        couponDiscountValue = 0;
+                        couponPercentage = 0.0;
+                        couponMaxCap = 0;
+                        couponMinOrderValue = 0;
+                        couponCategoryId = "";
+                        couponCategoryName = "";
+
+                        couponCodeInput.value = '';
+                        // couponCodeInput will be re-enabled by updateCouponSectionState
+                        
+                        couponFeedbackDiv.innerHTML = ''; // Clear feedback
+                        applyCouponButton.innerHTML = 'Apply';
+                        applyCouponButton.classList.remove('hidden'); // Show apply button
+                        
+                        showNotification('Coupon removed successfully.', 'success');
+                        updateTotalDisplay();
+                    } else {
+                        showNotification(result.message || 'Failed to remove coupon.', 'error');
+                        if(currentRemoveBtn) currentRemoveBtn.disabled = false;
+                    }
+                } catch (error) {
+                    console.error('Error removing coupon:', error);
+                    showNotification('An error occurred while removing the coupon.', 'error');
+                    if(currentRemoveBtn) currentRemoveBtn.disabled = false;
+                }
+                updateCouponSectionState(); // Re-check general coupon section state
+            }
+            
+            // Checkout functionality
+            const checkoutBtn = document.getElementById('checkout');
+            const checkoutModalElement = document.getElementById('checkoutModal');
+            const closeCheckoutModalBtn = document.getElementById('closeCheckoutModal');
+            const checkoutForm = document.getElementById('checkoutForm');
+            const checkoutProductListDiv = document.getElementById('checkout-product-list');
+            const checkoutItemCountP = document.getElementById('checkout-item-count');
+            const modalDeliveryEmailP = document.getElementById('modal-delivery-email');
+            const payButton = document.getElementById('pay-button');
+
+
+            function populateCheckoutModal() {
+                // 1. Populate Item Count
+                const cartItemsElements = document.querySelectorAll('[data-product-id]');
+                checkoutItemCountP.textContent = `${cartItemsElements.length} item${cartItemsElements.length !== 1 ? 's' : ''} in your bag.`;
+
+                // 2. Populate Product List
+                checkoutProductListDiv.innerHTML = ''; // Clear previous items
+                cartItemsElements.forEach(itemDiv => {
+                    const name = itemDiv.querySelector('h3').textContent;
+                    const priceText = itemDiv.querySelector('.item-subtotal').textContent;
+                    const quantity = itemDiv.querySelector('.item-quantity').value;
+                    const imgSrc = itemDiv.querySelector('img')?.src || '';
+                    const durationElement = itemDiv.querySelector('[class*="bg-blue-500"]');
+                    const durationText = durationElement?.textContent || '';
+                    
+                    const productHTML = `
+                        <div class="flex items-center gap-4 p-3 bg-gray-800/50 rounded-lg border border-gray-700">
+                            <img src="${imgSrc}" alt="${name}" class="w-16 h-16 object-cover rounded-md flex-shrink-0 bg-gray-700">
+                            <div class="flex-grow">
+                                <h4 class="text-sm font-medium text-white">${name}</h4>
+                                ${durationText ? `<span class="text-xs text-blue-300">${durationText}</span>` : ''}
+                                <div class="text-xs text-gray-400 mt-1">
+                                    <span>Qty: ${quantity}</span>
+                                </div>
+                            </div>
+                            <div class="text-sm font-semibold text-gray-200">${priceText}</div>
+                        </div>
+                    `;
+                    checkoutProductListDiv.insertAdjacentHTML('beforeend', productHTML);
+                });
+
+                // 3. Populate Delivery Email
+                modalDeliveryEmailP.textContent = customerEmailInput.value;
+
+                // 4. Update Totals (subtotal, discount, total) - uses existing updateTotalDisplay logic which now updates modal fields
+                const totals = updateTotalDisplay(); 
+
+                // 5. Update Pay Button Text
+                if (payButton) {
+                    payButton.textContent = `Pay $${totals.total.toFixed(2)}`;
+                }
+            }
+            
+            if (checkoutBtn) {
+                console.log('Checkout button found, attaching event listener');
+                let isProcessing = false;
+                checkoutBtn.addEventListener('click', function() {
+                    if (isProcessing) return; // Prevent rapid clicking
+                    
+                    console.log('Checkout button clicked');
+                    // Check if email is provided and valid
+                    if (customerEmailInput.value.trim() === '') {
+                        showNotification('Please enter your email address to proceed.', 'warning');
+                        customerEmailInput.focus();
+                        return;
+                    }
+                    if (!validateEmail(customerEmailInput.value)) {
+                        showNotification('Please enter a valid email address.', 'warning');
+                        customerEmailInput.focus();
+                        return;
+                    }
+                    if (document.querySelectorAll('[data-product-id]').length === 0) {
+                        showNotification('Your cart is empty. Add items to proceed.', 'warning');
+                        return;
+                    }
+                    
+                    isProcessing = true;
+                    console.log('Opening checkout modal');
+                    populateCheckoutModal();
+                    checkoutModalElement.classList.remove('hidden');
+                    
+                    // Reset processing flag after a short delay
+                    setTimeout(() => {
+                        isProcessing = false;
+                    }, 1000);
+                });
+            } else {
+                console.log('Checkout button not found');
+            }
+            
+            if (closeCheckoutModalBtn) {
+                closeCheckoutModalBtn.addEventListener('click', () => checkoutModalElement.classList.add('hidden'));
+            }
+
+            if (checkoutForm) {
+                checkoutForm.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    const emailForCheckout = customerEmailInput.value;
+                    const currency = selectedCryptoInput.value || 'USDT';
+                    const submitButton = checkoutForm.querySelector('button[type="submit"]');
+                    const originalButtonText = payButton.textContent;
+                    payButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Processing...';
+                    payButton.disabled = true;
+                    try {
+                        const response = await fetch('/api/checkout', {
+                            method: 'POST', headers: {'Content-Type': 'application/json'},
+                            body: JSON.stringify({ username: username, email: emailForCheckout, currency: currency })
+                        });
+                        const result = await response.json();
+                        if (result.success) {
+                            checkoutModalElement.classList.add('hidden');
+                            if (result.payment_url) {
+                                showNotification('Redirecting to payment...', 'info', 3000);
+                                setTimeout(() => window.location.href = result.payment_url, 1500);
+                            } else {
+                                showNotification('Order placed successfully! Redirecting...', 'success', 3000);
+                                setTimeout(() => window.location.href = `/${username}`, 1500);
+                            }
+                        } else {
+                            showNotification(result.message || 'Failed to complete order.', 'error');
+                            payButton.innerHTML = originalButtonText;
+                            payButton.disabled = false;
+                        }
+                    } catch (error) {
+                        console.error('Error processing order:', error);
+                        showNotification('An error occurred while processing your order.', 'error');
+                        payButton.innerHTML = originalButtonText;
+                        payButton.disabled = false;
+                    }
+                });
+            }
+            
+            // Clear Cart Modal Logic
+            const clearCartShowModalBtn = document.getElementById('clear-cart'); // Assuming you'll add a button with this ID
+            const clearCartModalElement = document.getElementById('clearCartModal');
+            const cancelClearCartBtn = document.getElementById('cancelClearCart');
+            const confirmClearCartBtn = document.getElementById('confirmClearCart');
+            
+            if(clearCartShowModalBtn) { // If you add a visible "Clear Cart" button
+                clearCartShowModalBtn.addEventListener('click', function() {
+                    if (document.querySelectorAll('[data-product-id]').length > 0) {
+                        clearCartModalElement.classList.remove('hidden');
+                    } else {
+                        showNotification('Your cart is already empty.', 'info');
+                    }
+                });
+            }
+            if(cancelClearCartBtn) cancelClearCartBtn.addEventListener('click', () => clearCartModalElement.classList.add('hidden'));
+            if(confirmClearCartBtn) {
+                confirmClearCartBtn.addEventListener('click', async function() {
+                    clearCartModalElement.classList.add('hidden');
+                    // Add loading state if desired
+                    try {
+                        const response = await fetch('/api/cart/clear', {
+                            method: 'POST', headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ username: username })
+                    });
+                    const result = await response.json();
+                    if (result.success) {
+                            showNotification('Cart cleared successfully.', 'success');
+                            // Wait a bit for notification then reload or update UI
+                            setTimeout(() => window.location.href = `/${username}/cart`, 1500);
+                    } else {
+                            showNotification(result.message || 'Failed to clear cart.', 'error');
+                    }
+                } catch (error) {
+                        console.error('Error clearing cart:', error);
+                        showNotification('An error occurred while clearing your cart.', 'error');
+                    }
+                });
+            }
+
+            // Initial UI updates based on state
+            updateTotalDisplay(); // Calculate and display totals
+            updateCouponSectionState(); // Set initial state of coupon section based on email
+            
+            // If a coupon is applied on page load, ensure the UI reflects this correctly in the new structure.
+            if (couponApplied) {
+                couponCodeInput.value = "{{ applied_coupon.code if applied_coupon else '' }}";
+                couponCodeInput.disabled = true;
+                applyCouponButton.classList.add('hidden');
+                        
+                // Ensure the applied coupon feedback is correctly structured
+                // The Jinja block for this is already in the HTML, so it should render.
+                // We just need to ensure the remove button inside it gets its event listener.
+                const currentRemoveCouponButton = couponFeedbackDiv.querySelector('#remove-coupon');
+                if (currentRemoveCouponButton) {
+                    currentRemoveCouponButton.addEventListener('click', removeCoupon);
+                }
+            }
+            
+            // Search functionality removed as requested
+            
+            // Clear coupon on page load (don't remember coupons)
+            clearCouponOnLoad();
+            
+            // Refresh cart data immediately on page load to get latest stock and prices
+            refreshCartData(true);
+            
+            // Start auto-refresh intervals
+            startAutoRefresh();
+
+            // Crypto dropdown selection logic
+            const cryptoSelect = document.getElementById('crypto-select');
+            const selectedCryptoInput = document.getElementById('selected-crypto');
+            if (cryptoSelect) {
+              cryptoSelect.addEventListener('change', function() {
+                selectedCryptoInput.value = this.value;
+              });
+              // Set initial value
+              selectedCryptoInput.value = cryptoSelect.value;
+            }
+
+        });
+    </script>
+</body>
+</html> 

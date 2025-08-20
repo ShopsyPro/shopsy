@@ -1,0 +1,143 @@
+{% extends "_base/base.html" %}
+
+{% block title %}Payout Settings | ShopsyPro{% endblock %}
+
+{% block content %}
+<section id="payout-settings" class="min-h-screen p-4 sm:p-6 md:p-8 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+  <div class="max-w-4xl mx-auto">
+    <div class="mb-8">
+      <h1 class="text-3xl font-bold text-slate-100">Payout Settings</h1>
+      <p class="text-slate-400 mt-1">Manage the crypto addresses where you receive your funds.</p>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="mb-6 space-y-3">
+          {% for category, message in messages %}
+            <div class="p-4 rounded-lg border {% if category == 'success' %}bg-green-500/10 border-green-500/30 text-green-300{% else %}bg-red-500/10 border-red-500/30 text-red-300{% endif %}">
+              {{ message }}
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <div class="bg-slate-800/80 rounded-xl border border-slate-700">
+      <div class="p-6 sm:p-8">
+        <div class="flex items-center mb-6">
+          <div class="bg-green-500/10 p-3 rounded-lg border border-green-500/20">
+            <svg class="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+          </div>
+          <h3 class="text-xl font-semibold text-slate-100 ml-4">Your Payout Addresses</h3>
+        </div>
+
+        <form method="POST" class="space-y-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+            
+            <h4 class="md:col-span-2 text-sm font-semibold text-slate-400 pt-4 mt-2 border-t border-slate-700">Major Coins</h4>
+            
+            {% macro crypto_input(id, name, symbol, color, placeholder, value) %}
+            <div>
+              <label for="{{ id }}" class="block text-sm font-medium text-slate-300 mb-2 flex items-center">
+                <span class="w-5 h-5 mr-2 {{ color }} font-bold flex items-center justify-center">{{ symbol }}</span>
+                {{ name }}
+              </label>
+              <input type="text" id="{{ id }}" name="{{ id }}" value="{{ value }}" placeholder="{{ placeholder }}"
+                     class="w-full p-3 bg-slate-700/50 border border-slate-600 rounded-lg text-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+            </div>
+            {% endmacro %}
+
+            {{ crypto_input('btc', 'Bitcoin (BTC)', '₿', 'text-orange-400', 'Your Bitcoin payout address', crypto_addresses.get('btc', '')) }}
+            {{ crypto_input('eth', 'Ethereum (ETH)', 'Ξ', 'text-blue-400', 'Your Ethereum payout address', crypto_addresses.get('eth', '')) }}
+            {{ crypto_input('ltc', 'Litecoin (LTC)', 'Ł', 'text-slate-400', 'Your Litecoin payout address', crypto_addresses.get('ltc', '')) }}
+            {{ crypto_input('bch', 'Bitcoin Cash (BCH)', '₿', 'text-green-500', 'Your Bitcoin Cash payout address', crypto_addresses.get('bch', '')) }}
+
+            <h4 class="md:col-span-2 text-sm font-semibold text-slate-400 pt-4 mt-2 border-t border-slate-700">Stablecoins</h4>
+
+            {{ crypto_input('usdt', 'Tether (USDT)', '₮', 'text-green-400', 'Your USDT payout address', crypto_addresses.get('usdt', '')) }}
+            {{ crypto_input('usdc', 'USD Coin (USDC)', '$', 'text-blue-500', 'Your USDC payout address', crypto_addresses.get('usdc', '')) }}
+            {{ crypto_input('dai', 'Dai (DAI)', '◈', 'text-yellow-500', 'Your Dai payout address', crypto_addresses.get('dai', '')) }}
+
+            <h4 class="md:col-span-2 text-sm font-semibold text-slate-400 pt-4 mt-2 border-t border-slate-700">Popular Altcoins & DeFi</h4>
+            
+            {{ crypto_input('sol', 'Solana (SOL)', '◎', 'text-purple-400', 'Your Solana payout address', crypto_addresses.get('sol', '')) }}
+            {{ crypto_input('bnb', 'BNB (Binance Coin)', 'B', 'text-yellow-400', 'Your BNB payout address', crypto_addresses.get('bnb', '')) }}
+            {{ crypto_input('trx', 'Tron (TRX)', 'T', 'text-red-500', 'Your Tron payout address', crypto_addresses.get('trx', '')) }}
+            {{ crypto_input('doge', 'Dogecoin (DOGE)', 'Ð', 'text-yellow-400', 'Your Dogecoin payout address', crypto_addresses.get('doge', '')) }}
+            {{ crypto_input('shib', 'Shiba Inu (SHIB)', '🐕', 'text-orange-500', 'Your Shiba Inu payout address', crypto_addresses.get('shib', '')) }}
+            {{ crypto_input('link', 'Chainlink (LINK)', '🔗', 'text-blue-600', 'Your Chainlink payout address', crypto_addresses.get('link', '')) }}
+            {{ crypto_input('uni', 'Uniswap (UNI)', '🦄', 'text-pink-500', 'Your Uniswap payout address', crypto_addresses.get('uni', '')) }}
+            {{ crypto_input('aave', 'Aave (AAVE)', '👻', 'text-purple-600', 'Your Aave payout address', crypto_addresses.get('aave', '')) }}
+
+          </div>
+
+          <div class="pt-6">
+            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:ring-offset-2 focus:ring-offset-slate-800">
+                Save Payout Addresses
+            </button>
+            <div id="form-validation-message" class="hidden mt-3 p-3 rounded-lg bg-red-900/30 border border-red-500/30 text-sm text-red-400 text-center"></div>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="mt-8 bg-slate-800/50 rounded-xl p-6 border border-slate-700">
+      <div class="flex items-start space-x-4">
+        <div class="flex-shrink-0 bg-blue-500/10 p-3 rounded-lg border border-blue-500/20">
+          <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        </div>
+        <div>
+          <h3 class="text-lg font-semibold text-slate-100 mb-2">How Payouts Work</h3>
+          <ul class="text-sm text-slate-400 space-y-2">
+            <li class="flex items-baseline"><span class="text-green-400 mr-2">✓</span><span>These are the destination addresses for all your earnings.</span></li>
+            <li class="flex items-baseline"><span class="text-green-400 mr-2">✓</span><span>Payouts can be processed automatically or requested manually from your dashboard.</span></li>
+            <li class="flex items-baseline"><span class="text-green-400 mr-2">✓</span><span>Please double-check your addresses for accuracy. Payouts to incorrect addresses are irreversible.</span></li>
+            <li class="flex items-baseline"><span class="text-green-400 mr-2">✓</span><span>You only need to provide addresses for the cryptocurrencies you wish to withdraw.</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const inputs = form.querySelectorAll('input[type="text"]');
+    const validationMessageEl = document.getElementById('form-validation-message');
+    
+    form.addEventListener('submit', function(e) {
+      let hasAtLeastOneAddress = false;
+      inputs.forEach(input => {
+        if (input.value.trim() !== '') {
+          hasAtLeastOneAddress = true;
+        }
+      });
+      
+      if (!hasAtLeastOneAddress) {
+        e.preventDefault(); // Stop form submission
+        validationMessageEl.textContent = 'Please enter at least one payout address to save.';
+        validationMessageEl.classList.remove('hidden');
+      } else {
+        validationMessageEl.classList.add('hidden');
+      }
+    });
+
+    // Optional: Basic real-time validation feedback on fields
+    inputs.forEach(input => {
+      input.addEventListener('input', function() {
+        const value = this.value.trim();
+        // A very basic check: not empty and has a reasonable length
+        if (value !== '' && (value.length < 26 || value.length > 100)) {
+          this.classList.add('border-red-500/50');
+          this.classList.remove('border-slate-600');
+        } else {
+          this.classList.remove('border-red-500/50');
+          this.classList.add('border-slate-600');
+        }
+      });
+    });
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,200 @@
+{% extends "superadmin/base.html" %}
+
+{% block title %}Orders - Super Admin{% endblock %}
+
+{% block content %}
+<section class="min-h-screen p-4 sm:p-6 md:p-8">
+    <div x-data="{ openModalId: null }" @keydown.escape.window="openModalId = null">
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-slate-100">Platform Orders</h1>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+            <div class="bg-slate-800/80 p-5 rounded-xl border border-slate-700">
+                <p class="text-sm text-slate-400">Total Orders</p>
+                <p class="text-3xl font-bold text-slate-100 mt-1">{{ "{:,}".format(total_orders or 0) }}</p>
+            </div>
+            <div class="bg-slate-800/80 p-5 rounded-xl border border-slate-700">
+                <p class="text-sm text-slate-400">Completed</p>
+                <p class="text-3xl font-bold text-green-400 mt-1" id="completed-count">-</p>
+            </div>
+            <div class="bg-slate-800/80 p-5 rounded-xl border border-slate-700">
+                <p class="text-sm text-slate-400">Pending</p>
+                <p class="text-3xl font-bold text-yellow-400 mt-1" id="pending-count">-</p>
+            </div>
+            <div class="bg-slate-800/80 p-5 rounded-xl border border-slate-700">
+                <p class="text-sm text-slate-400">Total Revenue</p>
+                <p class="text-3xl font-bold text-green-400 mt-1" id="total-revenue">-</p>
+            </div>
+        </div>
+
+        <div class="bg-slate-800/80 rounded-xl border border-slate-700">
+            <div class="p-4 flex flex-col sm:flex-row justify-between sm:items-center gap-4 border-b border-slate-700">
+                <h3 class="text-lg font-semibold text-slate-100">All Orders</h3>
+                <div class="flex flex-col sm:flex-row sm:items-center gap-3">
+                    <div class="flex items-center gap-2">
+                        <label for="status-filter" class="text-sm text-slate-400">Status:</label>
+                        <select class="form-select form-select-sm bg-slate-700/50 border border-slate-600 rounded-lg text-white text-sm focus:ring-2 focus:ring-blue-500 p-2" id="status-filter" onchange="filterOrders()">
+                            <option value="all" {% if status_filter == 'all' %}selected{% endif %}>All</option>
+                            <option value="completed" {% if status_filter == 'completed' %}selected{% endif %}>Completed</option>
+                            <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending</option>
+                            <option value="failed" {% if status_filter == 'failed' %}selected{% endif %}>Failed</option>
+                        </select>
+                    </div>
+                    <p class="text-sm text-slate-400 text-right">
+                        Showing {{ (page - 1) * 50 + 1 }}-{{ min(page * 50, total_orders or 0) }} of {{ "{:,}".format(total_orders or 0) }}
+                    </p>
+                </div>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left text-slate-400">
+                    <thead class="text-xs text-slate-400 uppercase bg-slate-700/50">
+                        <tr>
+                            <th class="px-6 py-3">Order ID</th>
+                            <th class="px-6 py-3">Merchant</th>
+                            <th class="px-6 py-3">Customer</th>
+                            <th class="px-6 py-3">Items</th>
+                            <th class="px-6 py-3">Amount</th>
+                            <th class="px-6 py-3">Status</th>
+                            <th class="px-6 py-3">Date</th>
+                            <th class="px-6 py-3">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in orders %}
+                        <tr class="border-b border-slate-700 hover:bg-slate-700/50 transition-colors">
+                            <td class="px-6 py-4 font-mono text-xs">{{ order.order_id }}</td>
+                            <td class="px-6 py-4 font-medium text-slate-200 whitespace-nowrap">{{ order.shop_name }}</td>
+                            <td class="px-6 py-4">{% if order.customer_email %}{{ order.customer_email }}{% else %}Guest{% endif %}</td>
+                            <td class="px-6 py-4">
+                                {% if order.items and order.items is iterable and order.items is not callable %}
+                                    {{ order.items|length }} item{{ 's' if order.items|length != 1 else '' }}
+                                {% else %}
+                                    0 items
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 text-green-400 font-semibold">${{ "{:.2f}".format(order.total_amount or 0) }}</td>
+                            <td class="px-6 py-4">
+                                {% if order.status == 'completed' %}<span class="badge px-2 py-1 text-xs font-medium rounded-full bg-green-500/10 text-green-300">Completed</span>
+                                {% elif order.status == 'pending' %}<span class="badge px-2 py-1 text-xs font-medium rounded-full bg-yellow-500/10 text-yellow-300">Pending</span>
+                                {% elif order.status == 'failed' or order.status == 'expired' %}<span class="badge px-2 py-1 text-xs font-medium rounded-full bg-red-500/10 text-red-300">{{ order.status|title }}</span>
+                                {% else %}<span class="badge px-2 py-1 text-xs font-medium rounded-full bg-slate-600 text-slate-300">{{ order.status }}</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">{{ order.created_at.strftime('%b %d, %Y') }}</td>
+                            <td class="px-6 py-4">
+                                <button @click="openModalId = '{{ order._id }}'" class="px-3 py-1.5 text-xs font-semibold text-white bg-blue-600 rounded-md hover:bg-blue-700 transition">View</button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            {% if total_pages > 1 %}
+            <nav class="p-4 border-t border-slate-700 flex justify-center">
+                <ul class="inline-flex items-center -space-x-px">
+                    {% if page > 1 %}
+                    <li><a href="{{ url_for('superadmin.orders', page=page-1, status=status_filter) }}" class="px-3 py-2 leading-tight text-slate-400 bg-slate-800 border border-slate-600 rounded-l-lg hover:bg-slate-700 hover:text-white">Prev</a></li>
+                    {% endif %}
+                    {% for p in range(max(1, page-2), min(total_pages+1, page+3)) %}
+                    <li><a href="{{ url_for('superadmin.orders', page=p, status=status_filter) }}" class="px-3 py-2 leading-tight border border-slate-600 {% if p == page %} text-white bg-blue-600 border-blue-600 {% else %} text-slate-400 bg-slate-800 hover:bg-slate-700 hover:text-white {% endif %}">{{ p }}</a></li>
+                    {% endfor %}
+                    {% if page < total_pages %}
+                    <li><a href="{{ url_for('superadmin.orders', page=page+1, status=status_filter) }}" class="px-3 py-2 leading-tight text-slate-400 bg-slate-800 border border-slate-600 rounded-r-lg hover:bg-slate-700 hover:text-white">Next</a></li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+
+        {% for order in orders %}
+        <div x-show="openModalId === '{{ order._id }}'" x-transition.opacity.duration.300 class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4" style="display: none;">
+            <div @click.away="openModalId = null" class="bg-slate-900 rounded-xl border border-slate-700 shadow-2xl w-full max-w-2xl mx-auto max-h-[90vh] overflow-y-auto">
+                <div class="p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-bold text-white">Order: {{ order.order_id }}</h3>
+                        <button @click="openModalId = null" class="text-slate-500 hover:text-white transition p-1"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                        <div class="space-y-2 p-3 bg-slate-800/50 rounded-lg">
+                            <p class="text-slate-400">Status: <span class="font-medium text-slate-200">{{ order.status|title }}</span></p>
+                            <p class="text-slate-400">Total: <span class="font-medium text-green-400">${{ "{:.2f}".format(order.total_amount or 0) }}</span></p>
+                            <p class="text-slate-400">Date: <span class="font-medium text-slate-200">{{ order.created_at.strftime('%Y-%m-%d %H:%M') }}</span></p>
+                        </div>
+                        <div class="space-y-2 p-3 bg-slate-800/50 rounded-lg">
+                            <p class="text-slate-400">Shop: <span class="font-medium text-slate-200">{{ order.shop_name }}</span></p>
+                            <p class="text-slate-400">Owner: <span class="font-medium text-slate-200">@{{ order.owner_username }}</span></p>
+                            <p class="text-slate-400">Customer: <span class="font-medium text-slate-200">{% if order.customer_email %}{{ order.customer_email }}{% else %}Guest{% endif %}</span></p>
+                        </div>
+                    </div>
+                    <h4 class="font-semibold text-white mt-6 mb-2">Order Items</h4>
+                    <div class="border border-slate-700 rounded-lg overflow-hidden">
+                        <table class="w-full text-sm text-left text-slate-400">
+                            <thead class="text-xs text-slate-400 uppercase bg-slate-700/50"><tr><th class="px-4 py-2">Product</th><th class="px-4 py-2">Qty</th><th class="px-4 py-2">Subtotal</th></tr></thead>
+                            <tbody>
+                                {% if order.items and order.items is iterable and order.items is not callable %}
+                                    {% for item in order.items %}
+                                    <tr class="border-b border-slate-700 last:border-b-0"><td class="px-4 py-2">{{ item.name }}</td><td class="px-4 py-2">{{ item.quantity }}</td><td class="px-4 py-2">${{ "{:.2f}".format(item.subtotal or 0) }}</td></tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr><td colspan="3" class="px-4 py-4 text-center">No items found for this order.</td></tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function filterOrders() {
+    const statusFilter = document.getElementById('status-filter').value;
+    const currentUrl = new URL(window.location);
+    
+    if (statusFilter === 'all') {
+        currentUrl.searchParams.delete('status');
+    } else {
+        currentUrl.searchParams.set('status', statusFilter);
+    }
+    
+    currentUrl.searchParams.delete('page');
+    window.location.href = currentUrl.toString();
+}
+
+function updateOrderStats() {
+    let completedCount = 0;
+    let pendingCount = 0;
+    let totalRevenue = 0;
+    
+    document.querySelectorAll('tbody tr').forEach(row => {
+        const statusEl = row.querySelector('.badge');
+        // Corrected selector to find the amount reliably
+        const amountEl = Array.from(row.querySelectorAll('td')).find(td => td.textContent.includes('$'));
+        
+        if (statusEl && amountEl) {
+            const status = statusEl.textContent.trim();
+            const amount = parseFloat(amountEl.textContent.replace('$', ''));
+
+            if (status === 'Completed') {
+                completedCount++;
+                totalRevenue += amount;
+            } else if (status === 'Pending') {
+                pendingCount++;
+            }
+        }
+    });
+    
+    document.getElementById('completed-count').textContent = completedCount;
+    document.getElementById('pending-count').textContent = pendingCount;
+    document.getElementById('total-revenue').textContent = '$' + totalRevenue.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+}
+
+updateOrderStats();
+</script>
+{% endblock %}

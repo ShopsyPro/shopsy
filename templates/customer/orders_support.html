@@ -1,0 +1,457 @@
+{% extends "customer/customer_base.html" %}
+
+{% block title %}Order Support | ShopsyPro{% endblock %}
+
+{% block content %}
+<section id="orders-support" class="min-h-screen p-4 sm:p-6 md:p-8 bg-gray-900 text-gray-200">
+  <div class="max-w-4xl mx-auto">
+    <div class="flex items-center justify-between mb-10">
+      <div>
+        <h1 class="text-4xl font-bold text-white mb-2 tracking-tight">Need Some Help?</h1>
+        <p class="text-gray-400 text-lg">We're here to assist with your orders.</p>
+      </div>
+      <a href="{{ url_for('orders.customer_orders_support_page', refresh=1) }}" class="inline-flex items-center justify-center p-2.5 sm:px-4 bg-gray-800 hover:bg-gray-700/80 border border-gray-700 text-gray-300 hover:text-white text-sm font-medium rounded-lg transition-all" title="Refresh Orders">
+        <i class="fas fa-sync-alt"></i>
+        <span class="hidden sm:inline sm:ml-2">Refresh</span>
+      </a>
+    </div>
+
+    <div class="mb-10 p-4 bg-gray-800 rounded-lg border border-sky-500/20 flex items-center gap-4">
+      <i class="fas fa-info-circle text-sky-400 text-xl"></i>
+      <span class="text-gray-300 text-sm">For general inquiries not related to a specific order, please email us at <a href="mailto:hi@shopsy.pro" class="text-sky-400 underline hover:text-sky-300">hi@shopsy.pro</a>.</span>
+    </div>
+
+    <div class="bg-gray-800/60 backdrop-blur-md rounded-2xl border border-gray-700/80 shadow-2xl shadow-black/20 p-6 sm:p-8">
+      <form id="ordersSupportForm">
+        {% set shops = {} %}
+        {% for order in all_orders %}
+        {% set shop_key = order.get('shop_username', 'unknown') %}
+        {% if shop_key not in shops %}
+        {% set _ = shops.update({shop_key: {
+        'username': shop_key,
+        'name': order.get('shop_name', 'Unknown Shop'),
+        'order_count': 1,
+        'total_spent': order.get('total_amount', 0),
+        'avatar': order.get('shop_avatar', None)
+        }}) %}
+        {% else %}
+        {% set _ = shops[shop_key].update({
+        'order_count': shops[shop_key]['order_count'] + 1,
+        'total_spent': shops[shop_key]['total_spent'] + order.get('total_amount', 0)
+        }) %}
+        {% endif %}
+        {% endfor %}
+
+        <div id="shopSelectionStep" class="transition-opacity duration-300">
+          <div class="flex items-center gap-4 mb-2">
+            <div class="flex items-center justify-center w-8 h-8 rounded-full bg-sky-600 text-white font-bold text-sm">1</div>
+            <h2 class="text-2xl font-semibold text-white">Choose a Shop</h2>
+          </div>
+          <p class="text-gray-400 mb-6">Select the shop where you placed your order.</p>
+
+          {% if shops %}
+          <div class="relative">
+            <div class="flex space-x-4 overflow-x-auto pb-4 -mx-4 px-4 [mask-image:linear-gradient(to_right,rgba(0,0,0,1)_95%,rgba(0,0,0,0))]">
+              {% for shop in shops.values() %}
+              <label class="shop-card flex-shrink-0 w-64 h-40 flex flex-col justify-between p-4 cursor-pointer rounded-xl transition-all duration-300 bg-gray-900/50 hover:bg-gray-900/80 border border-gray-700 hover:border-sky-500/50 relative">
+                <input type="radio" name="selected_shop" value="{{ shop.username }}" class="absolute opacity-0 w-0 h-0 peer">
+                <div class="absolute top-3 right-3 w-5 h-5 rounded-full border-2 border-gray-600 bg-gray-800 transition-all peer-checked:bg-sky-500 peer-checked:border-sky-400 flex items-center justify-center">
+                  <i class="fas fa-check text-white text-xs opacity-0 peer-checked:opacity-100"></i>
+                </div>
+                <div class="flex items-center space-x-3">
+                  <div class="flex-shrink-0">
+                    <div class="w-12 h-12 rounded-full bg-gray-700 flex items-center justify-center overflow-hidden border border-gray-600">
+                      {% if shop.avatar %}
+                      <img src="{{ shop.avatar }}" alt="{{ shop.name }}" class="w-full h-full object-cover">
+                      {% else %}
+                      <i class="fas fa-store text-xl text-gray-400"></i>
+                      {% endif %}
+                    </div>
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <div class="text-white font-bold text-base truncate">{{ shop.name }}</div>
+                    <div class="text-sm text-gray-400 truncate">@{{ shop.username }}</div>
+                  </div>
+                </div>
+                <div class="flex justify-between items-end mt-2 pt-2 border-t border-gray-700/50">
+                  <div class="text-xs text-gray-400"><i class="fas fa-box-open mr-1.5 opacity-60"></i>{{ shop.order_count }} order{{ 's' if shop.order_count != 1 else '' }}</div>
+                  <div class="text-xs text-gray-300 font-medium">${{ "%.2f"|format(shop.total_spent) }} spent</div>
+                </div>
+              </label>
+              {% endfor %}
+            </div>
+            <div class="absolute top-0 right-0 h-full w-8 bg-gradient-to-l from-gray-800/60 pointer-events-none"></div>
+          </div>
+          {% else %}
+          <div class="text-center py-10 my-4 bg-gray-900/50 rounded-lg border border-dashed border-gray-700">
+            <i class="fas fa-shopping-cart text-4xl mb-4 text-gray-500"></i>
+            <p class="text-gray-400">You haven't placed any orders yet.</p>
+            <a href="{{ url_for('core.index') }}" class="mt-4 inline-block px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white text-sm font-medium rounded-lg transition-colors">
+              Start Shopping
+            </a>
+          </div>
+          {% endif %}
+        </div>
+
+        <div id="orderSelectionStep" class="hidden transition-opacity duration-300">
+          <div class="flex items-center gap-4 mb-2">
+            <div class="flex items-center justify-center w-8 h-8 rounded-full bg-sky-600 text-white font-bold text-sm">2</div>
+            <h2 class="text-2xl font-semibold text-white">Select Your Order(s)</h2>
+          </div>
+          <p class="text-gray-400 mb-6">Choose the order(s) you need help with from <span id="selectedShopName" class="text-sky-400 font-medium"></span>.</p>
+
+          <div class="relative">
+            <div id="shopOrdersList" class="flex space-x-4 overflow-x-auto pb-4 -mx-4 px-4 [mask-image:linear-gradient(to_right,rgba(0,0,0,1)_95%,rgba(0,0,0,0))]">
+            </div>
+            <div class="absolute top-0 right-0 h-full w-8 bg-gradient-to-l from-gray-800/60 pointer-events-none"></div>
+          </div>
+          <div class="mt-4 flex justify-start items-center">
+            <button type="button" id="backToShops" class="text-sky-400 hover:text-sky-300 text-sm font-medium transition-colors flex items-center">
+              <i class="fas fa-arrow-left mr-2"></i>
+              <span class="hidden sm:inline">Back to Shop Selection</span>
+            </button>
+          </div>
+        </div>
+
+        <div id="issueDetailsStep" class="mt-10 pt-8 border-t border-gray-700/80">
+          <div class="flex items-center gap-4 mb-2">
+            <div class="flex items-center justify-center w-8 h-8 rounded-full bg-sky-600 text-white font-bold text-sm">3</div>
+            <h2 class="text-2xl font-semibold text-white">Describe Your Issue</h2>
+          </div>
+          <p class="text-gray-400 mb-8">Provide details to help us resolve your problem quickly.</p>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label for="issueTypeButton" class="block text-sm font-medium text-gray-300 mb-2">Issue Category</label>
+              <div class="relative" id="customDropdown">
+                <input type="hidden" name="issue_type" id="issueType" required>
+                <button type="button" id="issueTypeButton" aria-haspopup="listbox" aria-expanded="false" class="w-full flex items-center justify-between text-left px-4 py-2.5 bg-gray-900 border border-gray-700/80 rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-sky-500 focus:border-sky-500">
+                  <span id="issueTypeSelectedText" class="text-gray-500">Select a category...</span>
+                  <i class="fas fa-chevron-down text-sm text-gray-400 transition-transform duration-200"></i>
+                </button>
+                <div id="issueTypeMenu" role="listbox" class="absolute z-10 w-full mt-2 bg-gray-900 border border-gray-700 rounded-lg shadow-lg invisible transition-all duration-200 ease-out transform opacity-0 scale-95 max-h-60 overflow-y-auto">
+                  <div class="p-1">
+                    <a href="#" role="option" class="dropdown-item flex items-center gap-3 px-3 py-2 text-gray-300 hover:bg-gray-800/80 rounded-md" data-value="delivery">🚚 <span>Delivery Issue</span></a>
+                    <a href="#" role="option" class="dropdown-item flex items-center gap-3 px-3 py-2 text-gray-300 hover:bg-gray-800/80 rounded-md" data-value="product">📦 <span>Product Quality</span></a>
+                    <a href="#" role="option" class="dropdown-item flex items-center gap-3 px-3 py-2 text-gray-300 hover:bg-gray-800/80 rounded-md" data-value="payment">💳 <span>Payment or Billing</span></a>
+                    <a href="#" role="option" class="dropdown-item flex items-center gap-3 px-3 py-2 text-gray-300 hover:bg-gray-800/80 rounded-md" data-value="refund">💰 <span>Refund Request</span></a>
+                    <a href="#" role="option" class="dropdown-item flex items-center gap-3 px-3 py-2 text-gray-300 hover:bg-gray-800/80 rounded-md" data-value="account">🔐 <span>Account Access</span></a>
+                    <a href="#" role="option" class="dropdown-item flex items-center gap-3 px-3 py-2 text-gray-300 hover:bg-gray-800/80 rounded-md" data-value="other">❓ <span>Other</span></a>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div>
+              <label for="supportSubject" class="block text-sm font-medium text-gray-300 mb-2">Subject</label>
+              <input type="text" id="supportSubject" name="subject" required placeholder="e.g., Order #12345 has not arrived" class="w-full px-4 py-2.5 bg-gray-900 border border-gray-700/80 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-sky-500 focus:border-sky-500">
+            </div>
+            <div class="md:col-span-2">
+              <label for="supportMessage" class="block text-sm font-medium text-gray-300 mb-2">Detailed Description</label>
+              <textarea id="supportMessage" name="message" required rows="6" placeholder="Please provide as much detail as possible..." class="w-full px-4 py-2.5 bg-gray-900 border border-gray-700/80 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-sky-500 focus:border-sky-500 resize-y"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <input type="hidden" name="customer_email" value="{{ customer_email }}">
+        <input type="hidden" name="selected_orders" id="selectedOrdersInput">
+
+        <div class="flex justify-between items-center mt-10 pt-6 border-t border-gray-700/80">
+          <a href="{{ url_for('orders.customer_orders_dashboard') }}" class="inline-flex items-center justify-center p-3 sm:px-5 sm:py-2.5 text-sm font-medium text-gray-400 hover:text-white hover:bg-gray-700/50 rounded-lg transition-colors" title="Cancel">
+            <i class="fas fa-times text-lg sm:text-base"></i>
+            <span class="hidden sm:inline sm:ml-2">Cancel</span>
+          </a>
+          <button type="submit" class="inline-flex items-center justify-center p-3 sm:px-8 sm:py-3 bg-gradient-to-r from-sky-600 to-sky-700 hover:from-sky-700 hover:to-sky-800 text-white font-semibold rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg shadow-sky-900/50" title="Send Request">
+            <i class="fas fa-paper-plane text-lg sm:text-base"></i>
+            <span class="hidden sm:inline sm:ml-2">Send Request</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
+
+<div id="submissionSuccessModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 backdrop-blur-sm invisible opacity-0 transition-opacity duration-300">
+  <div class="m-4 w-full max-w-md text-center bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-8 shadow-2xl border border-gray-700/50">
+    <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-green-500/10 mb-6">
+      <i class="fas fa-check-circle text-green-400 text-4xl"></i>
+    </div>
+    <h3 class="text-2xl font-semibold text-white mb-3">Support Ticket Submitted</h3>
+    <p class="text-gray-400 mb-8 leading-relaxed">Your request has been sent. The merchant will get back to you shortly. You can track all your tickets in one place.</p>
+    <div class="flex items-center justify-center space-x-4">
+      <button id="closeSuccessModal" class="px-4 py-2.5 sm:px-6 bg-gray-600/50 hover:bg-gray-600/80 text-white rounded-lg font-semibold text-sm transition-colors" title="Close">
+        <i class="fas fa-times sm:mr-2"></i>
+        <span class="hidden sm:inline">Close</span>
+      </button>
+      <button id="viewMyTicketsBtn" class="inline-flex items-center justify-center px-4 py-2.5 sm:px-6 bg-sky-600 hover:bg-sky-700 text-white rounded-lg font-semibold text-sm transition-colors" title="View My Tickets">
+        <i class="fas fa-ticket-alt sm:mr-2"></i>
+        <span class="hidden sm:inline">View My Tickets</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+
+<script type="application/json" id="ordersData">
+  {% if all_orders %}
+  {% set orders_json = all_orders|tojson|safe %}
+  {{ orders_json if orders_json != 'null' else '[]' }}
+  {% else %}
+  []
+  {% endif %}
+</script>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // --- ELEMENTS ---
+    const shopSelectionStep = document.getElementById('shopSelectionStep');
+    const orderSelectionStep = document.getElementById('orderSelectionStep');
+    const issueDetailsStep = document.getElementById('issueDetailsStep');
+    const backToShopsBtn = document.getElementById('backToShops');
+    const selectedShopName = document.getElementById('selectedShopName');
+    const shopOrdersList = document.getElementById('shopOrdersList');
+    const selectedOrdersInput = document.getElementById('selectedOrdersInput');
+    const supportForm = document.getElementById('ordersSupportForm');
+    const submissionSuccessModal = document.getElementById('submissionSuccessModal');
+    const closeSuccessModalBtn = document.getElementById('closeSuccessModal');
+    const customerEmail = document.querySelector('input[name="customer_email"]').value;
+    const ordersData = JSON.parse(document.getElementById('ordersData').textContent || '[]');
+
+    // --- STATE ---
+    let selectedShop = null;
+    let selectedOrders = [];
+
+    // Initially disable Step 3
+    issueDetailsStep.style.opacity = '0.4';
+    issueDetailsStep.style.pointerEvents = 'none';
+
+    // --- CUSTOM DROPDOWN LOGIC ---
+    const dropdownButton = document.getElementById('issueTypeButton');
+    const dropdownMenu = document.getElementById('issueTypeMenu');
+    const hiddenInput = document.getElementById('issueType');
+    const selectedText = document.getElementById('issueTypeSelectedText');
+    const chevronIcon = dropdownButton.querySelector('i');
+
+    function toggleDropdown(show) {
+      if (show) {
+        dropdownButton.setAttribute('aria-expanded', 'true');
+        dropdownMenu.classList.remove('invisible', 'opacity-0', 'scale-95');
+        chevronIcon.style.transform = 'rotate(180deg)';
+      } else {
+        dropdownButton.setAttribute('aria-expanded', 'false');
+        dropdownMenu.classList.add('opacity-0', 'scale-95');
+        chevronIcon.style.transform = 'rotate(0deg)';
+        setTimeout(() => dropdownMenu.classList.add('invisible'), 200);
+      }
+    }
+
+    dropdownButton.addEventListener('click', () => {
+      const isExpanded = dropdownButton.getAttribute('aria-expanded') === 'true';
+      toggleDropdown(!isExpanded);
+    });
+
+    document.querySelectorAll('.dropdown-item').forEach(item => {
+      item.addEventListener('click', function(e) {
+        e.preventDefault();
+        hiddenInput.value = this.dataset.value;
+        selectedText.innerHTML = this.innerHTML; // Copy the icon and text
+        selectedText.classList.remove('text-gray-500');
+        selectedText.classList.add('text-white');
+        toggleDropdown(false);
+      });
+    });
+
+    window.addEventListener('click', function(e) {
+      if (!document.getElementById('customDropdown').contains(e.target)) {
+        if (dropdownButton.getAttribute('aria-expanded') === 'true') {
+          toggleDropdown(false);
+        }
+      }
+    });
+
+    // --- MAIN FORM FUNCTIONS ---
+    function showOrdersForShop(shopUsername) {
+      const shopOrders = ordersData.filter(order => order.shop_username === shopUsername);
+      if (!shopOrders.length) return;
+
+      const shop = shopOrders[0];
+      selectedShopName.textContent = shop.shop_name;
+
+      shopOrdersList.innerHTML = '';
+      shopOrders.forEach(order => {
+        let orderItems = order.items || [];
+        let firstItem = orderItems.length > 0 ? orderItems[0].name : 'No items';
+        let moreCount = orderItems.length > 1 ? `+ ${orderItems.length - 1} more` : '';
+        let orderDate = order.created_at ? new Date(order.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : 'N/A';
+        let orderTotal = order.total_amount ? `$${order.total_amount.toFixed(2)}` : '$0.00';
+        let status = order.delivered ? 'Delivered' : (order.status ? order.status.charAt(0).toUpperCase() + order.status.slice(1) : 'Pending');
+        let statusColor = order.delivered ? 'bg-green-500/10 text-green-300' : 'bg-yellow-500/10 text-yellow-300';
+        let orderId = order.order_summary?.display_id || 'N/A';
+
+        const card = document.createElement('label');
+        card.className = "order-card flex-shrink-0 w-72 h-44 flex flex-col justify-between p-4 cursor-pointer rounded-xl transition-all duration-300 bg-gray-900/50 hover:bg-gray-900/80 border border-gray-700 hover:border-sky-500/50 relative";
+        card.innerHTML = `
+          <input type="checkbox" name="shop_orders" value="${order._id}" class="order-checkbox absolute opacity-0 w-0 h-0 peer">
+          <div class="absolute top-3 right-3 w-5 h-5 rounded-full border-2 border-gray-600 bg-gray-800 transition-all peer-checked:bg-sky-500 peer-checked:border-sky-400 flex items-center justify-center">
+              <i class="fas fa-check text-white text-xs opacity-0 peer-checked:opacity-100"></i>
+          </div>
+          <div>
+              <div class="flex justify-between items-start">
+                  <div class="flex-1 min-w-0">
+                      <div class="text-white font-bold text-sm truncate">@${order.shop_username}</div>
+                      <div class="text-xs text-gray-400 truncate">${order.shop_name}</div>
+                  </div>
+                  <div class="text-xs px-2 py-1 rounded-full ${statusColor} font-semibold ml-2">${status}</div>
+              </div>
+          </div>
+          <div class="flex justify-between items-end mt-2 pt-2 border-t border-gray-700/50">
+              <div class="text-xs text-gray-400 flex items-center gap-1.5"><i class="fas fa-calendar-alt opacity-60"></i> ${orderDate}</div>
+              <div class="text-base text-sky-300 font-bold">${orderTotal}</div>
+          </div>
+          <div class="text-xs text-gray-400 mt-1">Order #${orderId}</div>
+        `;
+        shopOrdersList.appendChild(card);
+      });
+
+      document.querySelectorAll('.order-checkbox').forEach(checkbox => {
+        checkbox.addEventListener('change', updateSelectedOrdersUI);
+      });
+
+      showOrderSelectionStep();
+    }
+
+    function showShopSelectionStep() {
+      shopSelectionStep.classList.remove('hidden');
+      orderSelectionStep.classList.add('hidden');
+      selectedShop = null;
+      selectedOrders = [];
+      selectedOrdersInput.value = '';
+      document.querySelectorAll('input[name="selected_shop"]').forEach(radio => radio.checked = false);
+      updateSelectedOrdersUI();
+    }
+
+    function showOrderSelectionStep() {
+      shopSelectionStep.classList.add('hidden');
+      orderSelectionStep.classList.remove('hidden');
+    }
+
+    function updateSelectedOrdersUI() {
+      selectedOrders = Array.from(document.querySelectorAll('.order-checkbox:checked')).map(cb => cb.value);
+      selectedOrdersInput.value = selectedOrders.join(',');
+
+      if (selectedOrders.length > 0) {
+        issueDetailsStep.style.opacity = '1';
+        issueDetailsStep.style.pointerEvents = 'auto';
+      } else {
+        issueDetailsStep.style.opacity = '0.4';
+        issueDetailsStep.style.pointerEvents = 'none';
+      }
+    }
+
+    function showModal(modal) {
+      modal.classList.remove('invisible', 'opacity-0');
+      // Add a history entry for the modal state
+      window.history.pushState({ modal: 'success' }, '', window.location.href);
+    }
+    function hideModal(modal) {
+      modal.classList.add('opacity-0');
+      setTimeout(() => modal.classList.add('invisible'), 300);
+    }
+
+    // --- EVENT LISTENERS ---
+    document.querySelectorAll('input[name="selected_shop"]').forEach(radio => {
+      radio.addEventListener('change', function() {
+        if (this.checked) {
+          selectedShop = this.value;
+          showOrdersForShop(selectedShop);
+        }
+      });
+    });
+
+    backToShopsBtn.addEventListener('click', showShopSelectionStep);
+
+    closeSuccessModalBtn.addEventListener('click', () => {
+      hideModal(submissionSuccessModal);
+      // Reset form state after closing modal
+      supportForm.reset();
+      selectedText.innerHTML = 'Select a category...';
+      selectedText.classList.add('text-gray-500');
+      selectedText.classList.remove('text-white');
+      if (dropdownButton.getAttribute('aria-expanded') === 'true') {
+        toggleDropdown(false);
+      }
+      showShopSelectionStep();
+    });
+
+    // Handle View My Tickets button - replace current history entry to prevent back button issues
+    document.getElementById('viewMyTicketsBtn').addEventListener('click', () => {
+      // Replace the current history entry so back button doesn't return to modal
+      window.location.replace('{{ url_for("orders.customer_tickets_page") }}');
+    });
+
+    // Handle browser back button to close modal
+    window.addEventListener('popstate', function(event) {
+      if (event.state && event.state.modal === 'success') {
+        hideModal(submissionSuccessModal);
+        // Reset form state
+        supportForm.reset();
+        selectedText.innerHTML = 'Select a category...';
+        selectedText.classList.add('text-gray-500');
+        selectedText.classList.remove('text-white');
+        if (dropdownButton.getAttribute('aria-expanded') === 'true') {
+          toggleDropdown(false);
+        }
+        showShopSelectionStep();
+      }
+    });
+
+    supportForm.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const subject = document.getElementById('supportSubject').value.trim();
+      const description = document.getElementById('supportMessage').value.trim();
+      const issueType = document.getElementById('issueType').value;
+
+      if (!selectedShop) { alert('Please go back and select a shop.'); return; }
+      if (selectedOrders.length === 0) { alert('Please select at least one order.'); return; }
+      if (!issueType || !subject || !description) { alert('Please fill out all fields in the issue description.'); return; }
+
+      const firstOrder = ordersData.find(o => o._id === selectedOrders[0]);
+      if (!firstOrder) { alert('Error: Could not find order data.'); return; }
+
+      const ticketData = {
+        merchant_id: firstOrder.shop_id || firstOrder.merchant_id,
+        customer_id: firstOrder.customer_id || customerEmail,
+        shop_id: firstOrder.shop_id,
+        order_ids: selectedOrders,
+        subject: subject,
+        description: `[${issueType}] ${description}`
+      };
+
+      try {
+        const resp = await fetch('/support/api/tickets', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(ticketData)
+        });
+        const result = await resp.json();
+
+        if (result.success) {
+          showModal(submissionSuccessModal);
+          supportForm.reset();
+          selectedText.innerHTML = 'Select a category...';
+          selectedText.classList.add('text-gray-500');
+          selectedText.classList.remove('text-white');
+          if (dropdownButton.getAttribute('aria-expanded') === 'true') {
+            toggleDropdown(false);
+          }
+          showShopSelectionStep();
+        } else {
+          alert(result.error || 'Failed to submit support ticket. Please try again.');
+        }
+      } catch (err) {
+        console.error('Error submitting ticket:', err);
+        alert('An unexpected error occurred. Please check your connection and try again.');
+      }
+    });
+  });
+</script>
+{% endblock %}

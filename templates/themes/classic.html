@@ -1,0 +1,1572 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <title>{% if is_preview %}Preview: {% endif %}{{ shop_name }} - Storefront{% if is_preview %} ({{ preview_theme_name|title }} Theme){% endif %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='assets/default_avatar.png') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap"
+            rel="stylesheet">
+    <style>
+        :root {
+            --background-start-rgb: 23, 23, 33;
+            --background-end-rgb: 31, 41, 55;
+            --primary-start: 96, 165, 250;
+            /* blue-400 */
+            --primary-end: 59, 130, 246;
+            /* blue-600 */
+            --secondary-start: 107, 114, 128;
+            /* gray-500 */
+            --secondary-end: 75, 85, 99;
+            /* gray-600 */
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(to bottom, rgb(var(--background-start-rgb)), rgb(var(--background-end-rgb))) fixed;
+            color: #E5E7EB;
+            /* gray-200 */
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .font-heading {
+            font-family: 'Poppins', sans-serif;
+        }
+
+        main {
+            flex: 1;
+        }
+
+        .card {
+            background-color: rgba(31, 41, 55, 0.5);
+            /* gray-800 with opacity */
+            border: 1px solid rgba(75, 85, 99, 0.5);
+            /* gray-600 with opacity */
+            border-radius: 0.75rem;
+            /* rounded-xl */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease-in-out;
+            overflow: hidden;
+        }
+
+        .card:hover {
+            border-color: rgba(96, 165, 250, 0.5);
+            /* blue-400 with opacity */
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.2);
+        }
+
+        .product-card {
+            height: 100%;
+            background: linear-gradient(145deg, rgba(31, 41, 55, 0.5), rgba(49, 46, 75, 0.5));
+        }
+
+        .product-card:hover {
+            transform: translateY(-5px);
+            background: linear-gradient(145deg, rgba(31, 41, 55, 0.7), rgba(59, 130, 246, 0.2));
+        }
+
+        .product-image {
+            height: 160px; /* reduced from 220px */
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            /* rounded-lg */
+            transition: all 0.3s ease;
+            border: none;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+            text-align: center;
+        }
+
+        .btn-primary {
+            color: white;
+            background-image: linear-gradient(to right, rgb(var(--primary-start)), rgb(var(--primary-end)));
+            background-size: 200% auto;
+        }
+
+        .btn-primary:hover {
+            background-position: right center;
+            transform: scale(1.05);
+            box-shadow: 0 7px 15px rgba(var(--primary-start), 0.25);
+        }
+
+        .btn-secondary {
+            background-color: rgba(55, 65, 81, 0.8);
+            /* gray-700 with opacity */
+            color: #D1D5DB;
+            /* gray-300 */
+            border: 1px solid rgba(75, 85, 99, 0.8);
+            /* gray-600 with opacity */
+        }
+
+        .btn-secondary:hover {
+            background-color: rgba(75, 85, 99, 1);
+            /* gray-600 */
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .glass-effect {
+            background: rgba(23, 23, 33, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .category-pills {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        .category-pills::-webkit-scrollbar {
+            display: none;
+        }
+
+        .notification {
+            opacity: 0;
+            transform: translateY(20px) translateX(10px);
+            transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+        }
+
+        .notification.show {
+            opacity: 1;
+            transform: translateY(0) translateX(0);
+        }
+
+        @keyframes progress {
+            from {
+                width: 100%;
+            }
+
+            to {
+                width: 0%;
+            }
+        }
+
+        .notification .progress-bar {
+            height: 3px;
+            background-color: rgba(255, 255, 255, 0.7);
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            animation: progress 5s linear forwards;
+            border-bottom-left-radius: 0.5rem;
+        }
+
+        .coupon-carousel-track {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+            scroll-behavior: smooth;
+        }
+
+        .coupon-carousel-track::-webkit-scrollbar {
+            display: none;
+        }
+
+        #coupon-carousel-track {
+            /* Firefox */
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        /* Chrome, Safari, Opera */
+        #coupon-carousel-track::-webkit-scrollbar {
+            display: none;
+        }
+        
+        /* Responsive styles */
+        @media (max-width: 640px) {
+            .btn {
+                min-height: 44px;
+                padding: 0.5rem 0.75rem;
+                font-size: 1rem;
+            }
+            
+            .product-card:hover {
+                transform: none;
+            }
+            
+            .card:hover {
+                transform: none;
+            }
+            
+            .product-image {
+                height: 180px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .btn {
+                min-height: 44px;
+                padding: 0.5rem 0.75rem;
+                font-size: 1rem;
+            }
+        }
+        
+        /* Preview mode - disable cart functionality */
+        .preview-mode .add-to-cart,
+        .preview-mode .add-duration-product {
+            opacity: 0.6;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+        
+        .preview-mode .add-to-cart .button-text,
+        .preview-mode .add-duration-product .button-text {
+            display: none;
+        }
+        
+        .preview-mode .add-to-cart:after,
+        .preview-mode .add-duration-product:after {
+            content: "Preview Mode";
+        }
+        
+        /* Preview mode - disable modal add to cart */
+        .preview-mode #modalAddToCart {
+            opacity: 0.6;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+        
+        .preview-mode #modalAddToCart:after {
+            content: "Preview";
+        }
+        
+        .preview-mode #modalAddToCart i,
+        .preview-mode #modalAddToCart .fa-cart-plus {
+            display: none;
+        }
+    </style>
+</head>
+
+<body class="flex flex-col min-h-screen theme-classic {% if is_preview %}preview-mode{% endif %}">
+{% if is_preview %}
+<!-- Preview Banner -->
+<div class="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-2 px-4 text-center text-sm font-medium z-50 relative">
+    <i class="fas fa-eye mr-2"></i>
+    Preview Mode: {{ preview_theme_name|title }} Theme
+    <span class="text-blue-200">• This is how your storefront would look with this theme</span>
+</div>
+{% endif %}
+<header class="glass-effect sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center py-4">
+            <a href="{{ url_for('dashboard.home') }}"
+               class="text-2xl font-bold font-heading text-white tracking-tight hover:text-blue-300 transition-colors">
+                ShopsyPro<span class="text-blue-400">.</span>
+            </a>
+            <div class="flex items-center space-x-2 md:space-x-4">
+                <div class="relative hidden sm:block">
+                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i class="fas fa-search text-gray-400"></i>
+                    </span>
+                    <input type="text" id="shopSearchInput" placeholder="Search products..."
+                           class="w-48 md:w-64 py-2.5 px-4 pl-10 rounded-full bg-gray-800/80 border border-gray-700/60 text-white text-sm focus:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500/80 transition-all placeholder-gray-400"
+                           value="{{ request.args.get('search', '') }}">
+                </div>
+                <a href="{{ url_for('orders.track_orders') }}"
+                   class="hidden sm:inline-flex items-center px-3 py-2 text-sm text-gray-300 hover:text-white hover:bg-gray-700/50 rounded-md transition-colors">
+                    <i class="fas fa-box fa-sm mr-2"></i>
+                    Track Orders
+                </a>
+                <a href="{{ url_for('cart.view_cart', username=username) }}"
+                   class="text-gray-300 hover:text-white relative p-3 rounded-full hover:bg-gray-700/50 transition-colors">
+                    <i class="fas fa-shopping-cart fa-lg"></i>
+                    <span id="cart-count"
+                          class="absolute -top-1 -right-1 flex items-center justify-center h-5 w-5 bg-blue-600 text-white rounded-full text-xs font-bold hidden">
+                            0
+                        </span>
+                </a>
+            </div>
+        </div>
+    </div>
+</header>
+
+<main class="py-10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12">
+            <div
+                    class="inline-block h-20 w-20 rounded-full overflow-hidden bg-gray-700 border-2 border-blue-400/50 shadow-lg mb-4">
+                <img src="{{ shop_avatar_url|default('/static/assets/default_avatar.png', true) }}"
+                     alt="{{ shop_name }}'s avatar" class="h-full w-full object-cover">
+            </div>
+            <h1 class="text-3xl font-bold font-heading leading-tight text-white">{{ shop_name }}</h1>
+            <p class="mt-2 text-lg text-gray-300 max-w-2xl mx-auto">{{ shop_description|default('Welcome to our
+                digital marketplace!', true) }}</p>
+            <div class="online-status-container mt-3">
+                {% if online_status == 'online' %}
+                <span
+                        class="online-status-indicator inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-green-500/10 text-green-300 ring-1 ring-inset ring-green-500/20">
+                        <span class="h-1.5 w-1.5 mr-1.5 rounded-full bg-green-400 animate-pulse"></span>Online
+                    </span>
+                {% else %}
+                <span
+                        class="online-status-indicator inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-gray-500/10 text-gray-300 ring-1 ring-inset ring-gray-500/20">
+                        <span class="h-1.5 w-1.5 mr-1.5 rounded-full bg-gray-400"></span>{{ last_online_message }}
+                    </span>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if public_coupons %}
+        <div class="mb-12">
+            <h3 class="font-bold font-heading flex items-center justify-center text-2xl text-white mb-6">
+                <i class="fas fa-tags mr-3 text-yellow-400"></i>Available Coupons
+            </h3>
+            <div class="relative mb-12">
+                <div id="coupon-carousel-track"
+                     class="flex items-stretch space-x-4 overflow-x-auto py-2 -mx-4 px-4">
+                    {% for coupon in public_coupons %}
+                    <div
+                            class="coupon-card flex-shrink-0 w-72 h-46 flex flex-col justify-between card p-4 text-left">
+                        <div class="flex flex-col h-full">
+                            <div class="flex justify-between items-start mb-2">
+                                    <span
+                                            class="font-mono text-base font-bold text-blue-300 bg-blue-500/10 px-2.5 py-1 rounded border border-blue-500/20">
+                                        {{ coupon.code }}
+                                    </span>
+                                <span
+                                        class="text-green-300 font-semibold text-base bg-green-500/10 px-2.5 py-1 rounded-full border border-green-500/20">
+                                        {% if coupon.get('type', 'percentage') == 'percentage' %}
+                                        {{ coupon.get('discount_value', coupon.discount_percentage) }}% OFF
+                                        {% else %}
+                                        ${{ "%.2f"|format(coupon.get('discount_value', 0)) }} OFF
+                                        {% endif %}
+                                    </span>
+                            </div>
+                            <div class="text-sm text-gray-400 space-y-1 mt-2">
+                                {% if coupon.category_name %}
+                                <p>
+                                    <i class="fas fa-folder-open opacity-60 mr-1.5 w-4 text-center"></i>
+                                    For: {{ coupon.category_name }}
+                                </p>
+                                {% else %}
+                                <p>
+                                    <i class="fas fa-globe-americas opacity-60 mr-1.5 w-4 text-center"></i>
+                                    For: All Products
+                                </p>
+                                {% endif %}
+                                {% if coupon.get('type', 'percentage') == 'fixed' and coupon.get('min_order_value')
+                                %}
+                                <p>
+                                    <i class="fas fa-shopping-cart opacity-60 mr-1.5 w-4 text-center"></i>
+                                    Min order: ${{ "%.2f"|format(coupon.min_order_value) }}
+                                </p>
+                                {% endif %}
+                                {% if coupon.get('type', 'percentage') == 'percentage' and coupon.get('max_cap') %}
+                                <p>
+                                    <i class="fas fa-hand-paper opacity-60 mr-1.5 w-4 text-center"></i>
+                                    Max discount: ${{ "%.2f"|format(coupon.max_cap) }}
+                                </p>
+                                {% endif %}
+                                {% if coupon.expires_at %}
+                                <p>
+                                    <i class="fas fa-clock opacity-60 mr-1.5 w-4 text-center"></i>
+                                    Expires: {{ coupon.expires_at.strftime('%b %d, %Y') }}
+                                </p>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <button class="copy-coupon w-full mt-4 text-sm text-blue-300 hover:text-blue-200 font-semibold
+               flex items-center justify-center py-2 px-3 rounded-md bg-blue-500/10
+               hover:bg-blue-500/20 transition-all border border-blue-500/20" data-coupon="{{ coupon.code }}">
+                            <i class="fas fa-copy mr-2"></i>Copy Code
+                        </button>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <button id="coupon-prev" class="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 z-10
+           bg-gray-800/80 hover:bg-gray-700 transition-colors backdrop-blur-sm
+           rounded-full w-10 h-10 flex items-center justify-center text-white shadow-lg">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <button id="coupon-next" class="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 z-10
+           bg-gray-800/80 hover:bg-gray-700 transition-colors backdrop-blur-sm
+           rounded-full w-10 h-10 flex items-center justify-center text-white shadow-lg">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+            {%endif%}
+            <div class="w-full">
+                <div class="mb-8 md:flex justify-between items-center gap-8">
+                    <div class="mb-6 md:mb-0 text-center md:text-left">
+                        <h2 class="text-3xl md:text-4xl font-bold font-heading text-white">
+                            {% if search_query %}
+                            Results for "<span class="text-blue-300">{{ search_query }}</span>"
+                            {% if request.args.get('category_id') and current_category_name != 'All Products' %}
+                            in <span class="text-blue-300">{{ current_category_name }}</span>
+                            {% endif %}
+                            {% else %}
+                            {{ current_category_name }}
+                            {% endif %}
+                        </h2>
+                    </div>
+                    <div class="category-pills flex-shrink-0 flex space-x-2 items-center pb-2 overflow-x-auto">
+                        <a href="{{ url_for('shop.shop', username=username) }}" class="px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ease-in-out flex items-center space-x-2 whitespace-nowrap
+                          {% if not request.path.endswith('/category/') and not request.args.get('category_id') %}
+                              bg-blue-600 text-white shadow-md
+                          {% else %}
+                              bg-gray-700/50 text-gray-300 hover:bg-gray-700 hover:text-white
+                          {% endif %}">
+                            <i class="fas fa-th-large text-xs"></i>
+                            <span>All</span>
+                        </a>
+                        {% for category in categories %}
+                        <a href="{{ url_for('shop.shop', username=username, category_id=category._id) }}" class="px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ease-in-out whitespace-nowrap
+                              {% if request.args.get('category_id') == category._id|string %}
+                                  bg-blue-600 text-white shadow-md
+                              {% else %}
+                                  bg-gray-700/50 text-gray-300 hover:bg-gray-700 hover:text-white
+                              {% endif %}">
+                            {{ category.name }}
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                {% if products %}
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {% for product in products %}
+                    <div class="card product-card flex flex-col group" data-infinite-stock="{{ 'true' if product.infinite_stock else 'false' }}">
+                        <div class="relative product-image overflow-hidden rounded-t-xl">
+                            <button onclick="openProductModal('{{ username }}', '{{ product._id }}')"
+                                    class="w-full h-full">
+                                {% if product.image_url %}
+                                <img src="{{ product.image_url }}" alt="{{ product.name }}"
+                                     class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110">
+                                {% else %}
+                                <div class="h-full w-full flex items-center justify-center bg-gray-900/50">
+                                    <div class="text-center">
+                                        <i class="fas fa-check-circle fa-3x text-green-500 mb-2"></i>
+                                        <div class="text-green-400 font-semibold text-sm">In Stock</div>
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </button>
+                            {% if product.category_name and product.category_name != 'ALL' %}
+                            <span
+                                    class="absolute top-3 left-3 bg-black/50 text-white text-xs px-2.5 py-1 rounded-full shadow-md font-semibold backdrop-blur-sm">{{
+                                    product.category_name }}</span>
+                            {% endif %}
+
+                        </div>
+
+                        <div class="p-5 flex flex-col flex-grow">
+                            <h3
+                                    class="text-lg font-bold font-heading text-white mb-1 group-hover:text-blue-300 transition-colors">
+                                <button onclick="openProductModal('{{ username }}', '{{ product._id }}')"
+                                        class="text-left hover:text-blue-300 transition-colors">{{ product.name |
+                                    truncate(50, true, '...')}}</button>
+                            </h3>
+
+                            <p class="text-gray-400 text-sm mb-2 leading-relaxed flex-grow min-h-[10px]">
+                                {# Description removed from card as per requirement #}
+                            </p>
+
+                            <div class="mt-auto space-y-4">
+                                <div class="flex items-baseline justify-between text-white">
+                                    {% if product.has_duration_pricing and product.pricing_options %}
+                                    <div class="text-lg font-bold">
+                                        From <span class="text-blue-300 text-xl">${{
+                                                "%.2f"|format(product.pricing_options[0].price) }}</span>
+                                    </div>
+                                    <span class="text-xs text-gray-400">{{ product.pricing_options|length }}
+                                            option{{'s' if product.pricing_options|length != 1 else ''}}</span>
+                                    {% else %}
+                                    <span class="text-2xl font-bold text-blue-300">${{ "%.2f"|format(product.price)
+                                            }}</span>
+                                    {% endif %}
+
+                                    {% if not product.has_duration_pricing %}
+                                    <span
+                                            class="text-xs font-semibold px-2.5 py-1 rounded-full
+                                                    {% if product.infinite_stock %} bg-purple-500/10 text-purple-300 ring-1 ring-inset ring-purple-500/20
+                                                    {% elif product.stock > 10 %} bg-green-500/10 text-green-300 ring-1 ring-inset ring-green-500/20
+                                                    {% elif product.stock > 0 %} bg-yellow-500/10 text-yellow-300 ring-1 ring-inset ring-yellow-500/20
+                                                    {% else %} bg-red-500/10 text-red-400 ring-1 ring-inset ring-red-500/20 {% endif %}">
+                                            {% if product.infinite_stock %}Unlimited{% elif product.stock > 0 %}{{ product.stock }} units available{% else %}Out of Stock{% endif %}
+                                        </span>
+                                    {% elif product.has_duration_pricing and product.available_duration_options > 0 %}
+                                    <span
+                                            class="text-xs font-semibold px-2.5 py-1 rounded-full bg-blue-500/10 text-blue-300 ring-1 ring-inset ring-blue-500/20">
+                                            {{ product.available_duration_options }} Option{{ 's' if product.available_duration_options != 1 else '' }} Available
+                                        </span>
+                                    {% endif %}
+                                </div>
+
+                                {% if product.has_duration_pricing %}
+                                <div class="duration-selector relative" data-product-id="{{ product._id }}"
+                                     data-username="{{ username }}">
+                                    <select
+                                            class="duration-select w-full pl-3 pr-10 py-2.5 text-sm bg-gray-700/80 border border-gray-600/80 text-white rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500/80 appearance-none">
+                                        {% for option in product.pricing_options %}
+                                        {% set option_stock = option.stock|default(0)|int %}
+                                        <option value="{{ loop.index0 }}" data-price="{{ option.price }}"
+                                                data-duration="{{ option.name }}" data-stock="{{ option_stock }}"
+                                                class="bg-gray-800 text-white py-1" {% if option_stock==0 and not product.infinite_stock %}disabled{%
+                                                endif %}>
+                                            {{ option.name }} - ${{ "%.2f"|format(option.price) }}
+                                            {% if product.infinite_stock %}
+                                            <span class="text-gray-400">(Unlimited)</span>
+                                            {% else %}
+                                            <span class="text-gray-400">({{ option_stock }} left)</span>
+                                            {% endif %}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                    <div
+                                            class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-400">
+                                        <i class="fas fa-chevron-down text-xs"></i>
+                                    </div>
+                                </div>
+                                {% endif %}
+
+                                <div class="grid grid-cols-2 gap-3 pt-2">
+                                    <button onclick="openProductModal('{{ username }}', '{{ product._id }}')"
+                                            class="w-full btn btn-secondary text-sm">
+                                        <i class="fas fa-eye mr-2 opacity-80"></i>View
+                                    </button>
+                                    
+                                    {% if product.has_duration_pricing %}
+                                    <!-- Duration-based products -->
+                                    <div class="quantity-controls-container" data-product-id="{{ product._id }}" data-username="{{ username }}">
+                                        <!-- Add to cart button (shown initially) -->
+                                        <button class="w-full btn btn-primary add-duration-product text-sm"
+                                                data-product-id="{{ product._id }}" data-username="{{ username }}">
+                                            <i class="fas fa-cart-plus mr-2"></i><span class="button-text">Add to Cart</span>
+                                        </button>
+                                        
+                                        <!-- Quantity controls (hidden initially) -->
+                                        <div class="quantity-controls hidden bg-gray-700/80 border border-gray-600/80 rounded-md overflow-hidden">
+                                            <div class="flex items-center">
+                                                <button class="quantity-decrease px-3 py-2.5 hover:bg-gray-600 transition-colors text-gray-300 hover:text-white"
+                                                        data-product-id="{{ product._id }}" data-username="{{ username }}">
+                                                    <i class="fas fa-minus text-xs"></i>
+                                                </button>
+                                                <span class="quantity-display flex-1 text-center py-2.5 text-sm font-medium text-white bg-gray-800/50">0</span>
+                                                <button class="quantity-increase px-3 py-2.5 hover:bg-gray-600 transition-colors text-gray-300 hover:text-white"
+                                                        data-product-id="{{ product._id }}" data-username="{{ username }}">
+                                                    <i class="fas fa-plus text-xs"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% else %}
+                                    <!-- Standard products -->
+                                    <div class="quantity-controls-container" data-product-id="{{ product._id }}" data-username="{{ username }}">
+                                        <!-- Add to cart button (shown initially) -->
+                                        <button class="w-full btn btn-primary add-to-cart text-sm {% if product.stock <= 0 %}opacity-50 cursor-not-allowed{% endif %}"
+                                                data-product-id="{{ product._id }}" data-username="{{ username }}"
+                                                data-price="{{ product.price }}" data-stock="{{ product.stock }}" 
+                                                {% if product.stock <= 0 %}disabled{% endif %}>
+                                            <i class="fas fa-cart-plus mr-2"></i><span class="button-text">Add to Cart</span>
+                                        </button>
+                                        
+                                        <!-- Quantity controls (hidden initially) -->
+                                        <div class="quantity-controls hidden bg-gray-700/80 border border-gray-600/80 rounded-md overflow-hidden">
+                                            <div class="flex items-center">
+                                                <button class="quantity-decrease px-3 py-2.5 hover:bg-gray-600 transition-colors text-gray-300 hover:text-white"
+                                                        data-product-id="{{ product._id }}" data-username="{{ username }}">
+                                                    <i class="fas fa-minus text-xs"></i>
+                                                </button>
+                                                <span class="quantity-display flex-1 text-center py-2.5 text-sm font-medium text-white bg-gray-800/50">0</span>
+                                                <button class="quantity-increase px-3 py-2.5 hover:bg-gray-600 transition-colors text-gray-300 hover:text-white"
+                                                        data-product-id="{{ product._id }}" data-username="{{ username }}">
+                                                    <i class="fas fa-plus text-xs"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                {% else %}
+                <div class="text-center py-20 card">
+                    <i class="fas fa-store-slash fa-4x text-gray-600 mb-6"></i>
+                    <h3 class="text-2xl font-semibold text-white mb-2 font-heading">No Products Found</h3>
+                    <p class="text-gray-400 max-w-md mx-auto">There are no products matching your current selection.
+                        Try a different category or check back later!</p>
+                    <div class="mt-8">
+                        <a href="{{ url_for('shop.shop', username=username) }}"
+                           class="btn btn-primary inline-flex items-center">
+                            <i class="fas fa-arrow-left mr-2"></i>Browse All Products
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+</main>
+
+{% include 'components/footer.html' %}
+
+<div id="notification-container"
+     class="fixed bottom-5 right-5 z-[100] w-full max-w-sm space-y-3 pointer-events-none"></div>
+
+<script>
+    // Global variable for product quantities
+    let productQuantities = {};
+    
+    document.addEventListener('DOMContentLoaded', function () {
+        productQuantities = {};
+
+        // Use event delegation for all cart-related buttons
+        document.addEventListener('click', function (event) {
+            const durationButton = event.target.closest('.add-duration-product');
+            const standardButton = event.target.closest('.add-to-cart');
+            const increaseButton = event.target.closest('.quantity-increase');
+            const decreaseButton = event.target.closest('.quantity-decrease');
+
+            if (durationButton) {
+                handleAddToCart(durationButton, true);
+            } else if (standardButton) {
+                handleAddToCart(standardButton, false);
+            } else if (increaseButton) {
+                handleQuantityChange(increaseButton, 'increase');
+            } else if (decreaseButton) {
+                handleQuantityChange(decreaseButton, 'decrease');
+            }
+        });
+
+        document.querySelectorAll('.copy-coupon').forEach(button => {
+            button.addEventListener('click', function () {
+                const couponCode = this.dataset.coupon;
+                navigator.clipboard.writeText(couponCode).then(() => {
+                    const originalText = this.innerHTML;
+                    this.innerHTML = '<i class="fas fa-check mr-1.5"></i>Copied!';
+                    this.classList.add('bg-green-500/20', 'text-green-300');
+                    setTimeout(() => {
+                        this.innerHTML = originalText;
+                        this.classList.remove('bg-green-500/20', 'text-green-300');
+                    }, 2000);
+                }).catch(err => {
+                    showNotification('Failed to copy coupon code.', 'error');
+                });
+            });
+        });
+
+        const categoryNav = document.querySelector('.category-pills');
+        if (categoryNav) {
+            categoryNav.addEventListener('wheel', function (e) {
+                if (e.deltaY !== 0) {
+                    e.preventDefault();
+                    categoryNav.scrollLeft += e.deltaY > 0 ? 100 : -100;
+                }
+            }, { passive: false });
+        }
+
+        const couponTrack = document.getElementById('coupon-carousel-track');
+        const prevBtn = document.getElementById('coupon-prev');
+        const nextBtn = document.getElementById('coupon-next');
+
+        if (couponTrack && prevBtn && nextBtn) {
+            const card = couponTrack.querySelector('.coupon-card');
+            const gap = parseFloat(getComputedStyle(couponTrack).gap) || 0;
+            const step = (card?.getBoundingClientRect().width || 0) + gap;
+
+            nextBtn.addEventListener('click', () =>
+                couponTrack.scrollBy({ left: step, behavior: 'smooth' })
+            );
+            prevBtn.addEventListener('click', () =>
+                couponTrack.scrollBy({ left: -step, behavior: 'smooth' })
+            );
+
+            const updateArrows = () => {
+                prevBtn.style.display = couponTrack.scrollLeft > 0 ? 'flex' : 'none';
+                const maxScroll = couponTrack.scrollWidth - couponTrack.clientWidth;
+                nextBtn.style.display = couponTrack.scrollLeft < maxScroll ? 'flex' : 'none';
+            };
+            couponTrack.addEventListener('scroll', updateArrows);
+            window.addEventListener('resize', updateArrows);
+            updateArrows();
+        }
+
+        document.querySelectorAll('.duration-select').forEach(select => {
+            select.addEventListener('change', function () {
+                const selectedOption = this.options[this.selectedIndex];
+                const stock = parseInt(selectedOption.dataset.stock, 10);
+                const container = this.closest('.card').querySelector('.quantity-controls-container');
+                const productCard = this.closest('.card');
+                const isInfiniteStock = productCard.dataset.infiniteStock === 'true';
+
+                updateQuantityControlsForDuration(container, stock, isInfiniteStock, selectedOption.dataset.duration);
+            });
+            select.dispatchEvent(new Event('change'));
+        });
+
+        function handleAddToCart(button, isDurationProduct) {
+            if (button.hasAttribute('disabled') || button.dataset.loading === 'true') return;
+
+            const productId = button.dataset.productId;
+            const username = button.dataset.username;
+            let duration = null;
+            let price, stock, cartKey;
+
+            if (isDurationProduct) {
+                const selectEl = button.closest('.card').querySelector('.duration-select');
+                const selectedOption = selectEl.options[selectEl.selectedIndex];
+                duration = selectedOption.dataset.duration;
+                price = parseFloat(selectedOption.dataset.price);
+                stock = parseInt(selectedOption.dataset.stock, 10);
+                cartKey = `${productId}_${duration}`;
+            } else {
+                price = parseFloat(button.dataset.price);
+                stock = parseInt(button.dataset.stock, 10);
+                cartKey = productId;
+            }
+
+            button.dataset.loading = 'true';
+            button.disabled = true;
+
+            fetch('/api/cart/add', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ product_id: productId, quantity: 1, username: username, duration: duration })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showNotification(`${isDurationProduct ? duration : 'Product'} added to cart`, 'success');
+                        updateCartCount(data.cart_total_items);
+                        productQuantities[cartKey] = (productQuantities[cartKey] || 0) + 1;
+                        
+                        // Switch to quantity controls
+                        const container = button.closest('.quantity-controls-container');
+                        showQuantityControls(container, productQuantities[cartKey]);
+                    } else {
+                        showNotification(data.message || 'Failed to add item.', 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error adding to cart:', error);
+                    showNotification('An error occurred.', 'error');
+                })
+                .finally(() => {
+                    button.dataset.loading = 'false';
+                    button.disabled = false;
+                });
+        }
+
+        function handleQuantityChange(button, action) {
+            if (button.dataset.loading === 'true') return;
+
+            const productId = button.dataset.productId;
+            const username = button.dataset.username;
+            const container = button.closest('.quantity-controls-container');
+            const quantityDisplay = container.querySelector('.quantity-display');
+            const productCard = button.closest('.card');
+            const isInfiniteStock = productCard.dataset.infiniteStock === 'true';
+            
+            let duration = null;
+            let cartKey = productId;
+            let currentStock = 999999; // Default for infinite stock
+
+            // Check if this is a duration product
+            const durationSelect = productCard.querySelector('.duration-select');
+            if (durationSelect) {
+                const selectedOption = durationSelect.options[durationSelect.selectedIndex];
+                duration = selectedOption.dataset.duration;
+                cartKey = `${productId}_${duration}`;
+                if (!isInfiniteStock) {
+                    currentStock = parseInt(selectedOption.dataset.stock, 10);
+                }
+            } else if (!isInfiniteStock) {
+                // Standard product
+                const addButton = container.querySelector('.add-to-cart');
+                currentStock = parseInt(addButton.dataset.stock, 10);
+            }
+
+            const currentQuantity = productQuantities[cartKey] || 0;
+            let newQuantity = currentQuantity;
+
+            if (action === 'increase') {
+                if (isInfiniteStock) {
+                    showNotification('This product has unlimited stock. One unit is sufficient.', 'info');
+                    return;
+                }
+                if (currentQuantity < currentStock) {
+                    newQuantity = currentQuantity + 1;
+                } else {
+                    showNotification('Cannot add more. Stock limit reached.', 'error');
+                    return;
+                }
+            } else if (action === 'decrease') {
+                if (currentQuantity > 1) {
+                    newQuantity = currentQuantity - 1;
+                } else {
+                    newQuantity = 0; // Will remove from cart
+                }
+            }
+
+            button.dataset.loading = 'true';
+            const increaseBtn = container.querySelector('.quantity-increase');
+            const decreaseBtn = container.querySelector('.quantity-decrease');
+            increaseBtn.disabled = true;
+            decreaseBtn.disabled = true;
+
+            if (newQuantity === 0) {
+                // Remove item from cart
+                fetch('/api/cart/remove', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ product_id: productId, username: username, duration: duration })
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            productQuantities[cartKey] = 0;
+                            hideQuantityControls(container);
+                            showNotification('Item removed from cart', 'success');
+                            // Update cart count
+                            window.loadCartDataAndUpdateUI();
+                        } else {
+                            showNotification(data.message || 'Failed to remove item.', 'error');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error removing from cart:', error);
+                        showNotification('An error occurred.', 'error');
+                    })
+                    .finally(() => {
+                        button.dataset.loading = 'false';
+                        increaseBtn.disabled = false;
+                        decreaseBtn.disabled = false;
+                    });
+            } else {
+                // Update quantity
+                fetch('/api/cart/update', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        product_id: productId, 
+                        quantity: newQuantity, 
+                        username: username, 
+                        duration: duration 
+                    })
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            productQuantities[cartKey] = newQuantity;
+                            quantityDisplay.textContent = newQuantity;
+                            showNotification('Quantity updated', 'success');
+                            // Update cart count
+                            window.loadCartDataAndUpdateUI();
+                        } else {
+                            showNotification(data.message || 'Failed to update quantity.', 'error');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error updating cart:', error);
+                        showNotification('An error occurred.', 'error');
+                    })
+                    .finally(() => {
+                        button.dataset.loading = 'false';
+                        increaseBtn.disabled = false;
+                        decreaseBtn.disabled = false;
+                    });
+            }
+        }
+
+        function showQuantityControls(container, quantity) {
+            const addButton = container.querySelector('.add-duration-product, .add-to-cart');
+            const quantityControls = container.querySelector('.quantity-controls');
+            const quantityDisplay = container.querySelector('.quantity-display');
+            
+            addButton.style.display = 'none';
+            quantityControls.classList.remove('hidden');
+            quantityDisplay.textContent = quantity;
+        }
+
+        function hideQuantityControls(container) {
+            const addButton = container.querySelector('.add-duration-product, .add-to-cart');
+            const quantityControls = container.querySelector('.quantity-controls');
+            
+            quantityControls.classList.add('hidden');
+            addButton.style.display = 'block';
+            
+            // Reset button state
+            addButton.classList.remove('bg-green-600', 'hover:bg-green-700');
+            addButton.classList.add('btn-primary');
+            const buttonTextSpan = addButton.querySelector('.button-text');
+            if (buttonTextSpan) {
+                buttonTextSpan.textContent = 'Add to Cart';
+            }
+        }
+
+        function updateQuantityControlsForDuration(container, stock, isInfiniteStock, duration) {
+            const productId = container.dataset.productId;
+            const cartKey = `${productId}_${duration}`;
+            const quantityInCart = productQuantities[cartKey] || 0;
+
+            if (quantityInCart > 0) {
+                showQuantityControls(container, quantityInCart);
+                
+                // For infinite stock products, disable increase button
+                if (isInfiniteStock) {
+                    const increaseBtn = container.querySelector('.quantity-increase');
+                    increaseBtn.disabled = true;
+                    increaseBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                    increaseBtn.title = 'Unlimited stock - one unit is sufficient';
+                }
+            } else {
+                hideQuantityControls(container);
+                
+                // Update add button state based on stock
+                const addButton = container.querySelector('.add-duration-product');
+                if (addButton) {
+                    if (stock <= 0 && !isInfiniteStock) {
+                        addButton.disabled = true;
+                        addButton.classList.add('opacity-50', 'cursor-not-allowed');
+                        addButton.innerHTML = '<i class="fas fa-times-circle mr-2"></i>Out of Stock';
+                    } else {
+                        addButton.disabled = false;
+                        addButton.classList.remove('opacity-50', 'cursor-not-allowed');
+                        const buttonTextSpan = addButton.querySelector('.button-text');
+                        if (buttonTextSpan) {
+                            buttonTextSpan.textContent = 'Add to Cart';
+                        }
+                    }
+                }
+            }
+        }
+
+        // Make this function global so the modal can access it
+        window.loadCartDataAndUpdateUI = function() {
+            fetch(`/api/cart/{{ username }}`)
+                .then(response => response.json())
+                .then(data => {
+                    updateCartCount(data.total_items || 0);
+
+                    // Clear old quantities and repopulate
+                    Object.keys(productQuantities).forEach(key => delete productQuantities[key]);
+                    data.items.forEach(item => {
+                        const cartKey = item.duration ? `${item.product_id}_${item.duration}` : item.product_id;
+                        productQuantities[cartKey] = item.quantity;
+                    });
+
+                    // Update all quantity controls
+                    document.querySelectorAll('.quantity-controls-container').forEach(container => {
+                        const productId = container.dataset.productId;
+                        const productCard = container.closest('.product-card');
+                        const isInfiniteStock = productCard.dataset.infiniteStock === 'true';
+                        
+                        // Check if this is a duration product
+                        const durationSelect = productCard.querySelector('.duration-select');
+                        if (durationSelect) {
+                            const selectedOption = durationSelect.options[durationSelect.selectedIndex];
+                            const duration = selectedOption.dataset.duration;
+                            const stock = parseInt(selectedOption.dataset.stock, 10);
+                            updateQuantityControlsForDuration(container, stock, isInfiniteStock, duration);
+                        } else {
+                            // Standard product
+                            const cartKey = productId;
+                            const quantityInCart = productQuantities[cartKey] || 0;
+                            
+                            if (quantityInCart > 0) {
+                                showQuantityControls(container, quantityInCart);
+                                
+                                // For infinite stock products, disable increase button
+                                if (isInfiniteStock) {
+                                    const increaseBtn = container.querySelector('.quantity-increase');
+                                    increaseBtn.disabled = true;
+                                    increaseBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                                    increaseBtn.title = 'Unlimited stock - one unit is sufficient';
+                                    
+                                    // Add indicator for infinite stock products in cart
+                                    const existingIndicator = productCard.querySelector('.infinite-in-cart-indicator');
+                                    if (!existingIndicator) {
+                                        const indicator = document.createElement('div');
+                                        indicator.className = 'infinite-in-cart-indicator absolute top-2 right-2 bg-yellow-500 text-yellow-900 text-xs px-2 py-1 rounded-full font-semibold';
+                                        indicator.innerHTML = '<i class="fas fa-infinity mr-1"></i>In Cart';
+                                        productCard.appendChild(indicator);
+                                    }
+                                }
+                            } else {
+                                hideQuantityControls(container);
+                                
+                                // Remove infinite stock indicator if exists
+                                const existingIndicator = productCard.querySelector('.infinite-in-cart-indicator');
+                                if (existingIndicator) {
+                                    existingIndicator.remove();
+                                }
+                            }
+                        }
+                    });
+                })
+                .catch(error => console.error('Error fetching cart data:', error));
+        }
+
+        function updateCartCount(count) {
+            const cartCountEl = document.getElementById('cart-count');
+            if (count > 0) {
+                cartCountEl.textContent = count;
+                cartCountEl.classList.remove('hidden');
+            } else {
+                cartCountEl.classList.add('hidden');
+            }
+        }
+
+        // Initial load
+        window.loadCartDataAndUpdateUI();
+
+        function showNotification(message, type = 'info', duration = 5000) {
+            const container = document.getElementById('notification-container');
+            if (!container) return;
+            
+            // Clear existing notifications of the same message to prevent spam
+            const existingNotifications = container.querySelectorAll('.notification');
+            existingNotifications.forEach(existing => {
+                const existingMessage = existing.querySelector('p').textContent;
+                if (existingMessage === message) {
+                    removeUINotification(existing);
+                }
+            });
+            
+            const notification = document.createElement('div');
+            let iconHTML;
+            const baseClasses = 'notification shadow-2xl rounded-lg overflow-hidden relative text-white max-w-sm pointer-events-auto ring-1 ring-black ring-opacity-10';
+
+            switch (type) {
+                case 'success':
+                    notification.className = `${baseClasses} bg-gradient-to-br from-green-500 to-green-600`;
+                    iconHTML = '<i class="fas fa-check-circle"></i>'; break;
+                case 'error':
+                    notification.className = `${baseClasses} bg-gradient-to-br from-red-500 to-red-600`;
+                    iconHTML = '<i class="fas fa-times-circle"></i>'; break;
+                default:
+                    notification.className = `${baseClasses} bg-gradient-to-br from-blue-500 to-blue-600`;
+                    iconHTML = '<i class="fas fa-info-circle"></i>'; break;
+            }
+            notification.innerHTML =
+                `<div class="p-4 flex items-start space-x-3">
+                        <div class="text-xl mt-0.5 flex-shrink-0">${iconHTML}</div>
+                        <div class="flex-grow"><p class="font-semibold">${message}</p></div>
+                        <button class="ml-auto -mr-1 -mt-1 p-1 rounded-full hover:bg-white/20 transition-colors close-notification">
+                            <i class="fas fa-times text-sm"></i>
+                        </button>
+                    </div>
+                    <div class="progress-bar bg-white/50"></div>`;
+
+            notification.querySelector('.progress-bar').style.animationDuration = `${duration / 1000}s`;
+
+            container.appendChild(notification);
+            requestAnimationFrame(() => notification.classList.add('show'));
+
+            const closeBtn = notification.querySelector('.close-notification');
+            const timeoutId = setTimeout(() => removeUINotification(notification), duration);
+            closeBtn.addEventListener('click', () => {
+                clearTimeout(timeoutId);
+                removeUINotification(notification);
+            });
+        }
+
+        function removeUINotification(notification) {
+            if (!notification) return;
+            notification.classList.remove('show');
+            setTimeout(() => notification.remove(), 300);
+        }
+    });
+</script>
+
+<div id="productModal"
+     class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-gray-800 text-gray-100 rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+        <div class="p-6">
+            <div class="flex justify-between items-center mb-6">
+                <h2 id="modalTitle" class="text-2xl font-bold">Product Details</h2>
+                <button id="closeModal" class="text-gray-400 hover:text-gray-200">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-gray-700 rounded-lg p-4 flex items-center justify-center aspect-square">
+                    <img id="modalImage" src="" alt="" class="max-w-full max-h-full object-contain rounded-lg">
+                    <div id="modalImagePlaceholder"
+                         class="hidden flex-col items-center justify-center text-gray-500">
+                        <i class="fas fa-image text-4xl mb-2"></i>
+                        <p>No Image Available</p>
+                    </div>
+                </div>
+
+                <div class="flex flex-col">
+                    <h1 id="modalProductName" class="text-3xl font-bold mb-3"></h1>
+
+                    <div class="flex items-center space-x-3 mb-4">
+                            <span id="modalCategory"
+                                  class="text-sm font-medium bg-blue-600/80 text-blue-100 px-3 py-1 rounded-full"></span>
+                        <span id="modalStockStatus" class="text-sm font-medium px-3 py-1 rounded-full"></span>
+                    </div>
+
+                    <div class="mb-4">
+                        <div id="modalPriceContainer" class="text-3xl font-bold mb-2"></div>
+                        <div id="modalDurationSelector" class="hidden mb-3">
+                            <label for="modalDurationSelect" class="block text-sm font-medium text-gray-200 mb-1">
+                                Select Option:
+                            </label>
+                            <select id="modalDurationSelect" class="w-full bg-gray-700 border border-gray-600 rounded-lg
+                             px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500
+                             text-gray-100">
+                            </select>
+                        </div>
+                        <p id="modalStockDisplay" class="text-sm text-gray-300"></p>
+                    </div>
+
+                    <div id="modalDescription" class="mb-6 text-gray-300">
+                    </div>
+
+                    <div class="mt-auto">
+                        <div class="flex items-center gap-4 mb-4">
+                            <div id="modalQuantityControls" class="flex items-center bg-gray-700 border border-gray-600
+                          rounded-lg overflow-hidden">
+                                <button id="modalDecrementQty" class="px-3 py-2 hover:bg-gray-600">
+                                    <i class="fas fa-minus text-gray-200"></i>
+                                </button>
+                                <span id="modalQuantityDisplay" class="px-4 py-2 border-l border-r border-gray-600
+                             text-lg font-medium text-gray-200">
+                                        1
+                                    </span>
+                                <button id="modalIncrementQty" class="px-3 py-2 hover:bg-gray-600">
+                                    <i class="fas fa-plus text-gray-200"></i>
+                                </button>
+                                <input id="modalQuantity" type="hidden" value="1">
+                            </div>
+
+                            <div id="modalInfiniteStockNotice" class="hidden flex-1 text-center bg-purple-700/20 border
+                          border-purple-600 rounded-lg px-4 py-2 text-purple-300">
+                                <div class="flex items-center justify-center">
+                                    <span class="text-sm font-medium">Unlimited Stock</span>
+                                </div>
+                            </div>
+
+                            <button id="modalAddToCart" class="flex-1 bg-blue-600 hover:bg-blue-500 text-white
+                             py-2 px-4 rounded-lg transition-colors">
+                                <i class="fas fa-cart-plus mr-2"></i>Add to Cart
+                            </button>
+                        </div>
+                        <div id="modalAddToCartMessage" class="text-sm text-gray-300"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Product Modal JavaScript
+    document.addEventListener('DOMContentLoaded', function () {
+        const modal = document.getElementById('productModal');
+        const closeModal = document.getElementById('closeModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalImage = document.getElementById('modalImage');
+        const modalImagePlaceholder = document.getElementById('modalImagePlaceholder');
+        const modalProductName = document.getElementById('modalProductName');
+        const modalCategory = document.getElementById('modalCategory');
+        const modalStockStatus = document.getElementById('modalStockStatus');
+        const modalPriceContainer = document.getElementById('modalPriceContainer');
+        const modalDurationSelector = document.getElementById('modalDurationSelector');
+        const modalDurationSelect = document.getElementById('modalDurationSelect');
+        const modalStockDisplay = document.getElementById('modalStockDisplay');
+        const modalDescription = document.getElementById('modalDescription');
+        const modalQuantityDisplay = document.getElementById('modalQuantityDisplay');
+        const modalQuantity = document.getElementById('modalQuantity');
+        const modalDecrementQty = document.getElementById('modalDecrementQty');
+        const modalIncrementQty = document.getElementById('modalIncrementQty');
+        const modalAddToCart = document.getElementById('modalAddToCart');
+        const modalAddToCartMessage = document.getElementById('modalAddToCartMessage');
+
+        let currentProduct = null;
+        let currentUsername = null;
+        
+        // Fallback function in case openProductModal is not defined
+        if (typeof window.openProductModal === 'undefined') {
+            window.openProductModal = function(username, productId) {
+                console.error('openProductModal function not properly loaded');
+                alert('Product modal failed to load. Please refresh the page.');
+            };
+        }
+
+        closeModal.addEventListener('click', function () {
+            modal.classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        });
+
+        modal.addEventListener('click', function (e) {
+            if (e.target === modal) {
+                modal.classList.add('hidden');
+                document.body.style.overflow = 'auto';
+            }
+        });
+
+        // Ensure openProductModal is available globally
+        window.openProductModal = function (username, productId) {
+            try {
+                currentUsername = username;
+                modal.classList.remove('hidden');
+                document.body.style.overflow = 'hidden';
+                modalTitle.textContent = 'Loading...';
+
+                fetch(`/api/product/${username}/${productId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            populateModal(data.product, data.shop_name);
+                        } else {
+                            showError('Failed to load product details');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching product details:', error);
+                        showError('Failed to load product details');
+                    });
+            } catch (error) {
+                console.error('Error in openProductModal:', error);
+                showError('Failed to open product modal');
+            }
+        };
+
+        function populateModal(product, shopName) {
+            currentProduct = product;
+            modalTitle.textContent = `${product.name} - ${shopName}`;
+            modalProductName.textContent = product.name;
+            modalCategory.textContent = product.category_name;
+
+            if (product.image_url) {
+                modalImage.src = product.image_url;
+                modalImage.alt = product.name;
+                modalImage.classList.remove('hidden');
+                modalImagePlaceholder.classList.add('hidden');
+            } else {
+                // Show the In Stock placeholder
+                modalImage.classList.add('hidden');
+                modalImagePlaceholder.classList.remove('hidden');
+                modalImagePlaceholder.innerHTML = `
+      <div class='h-full w-full flex flex-col items-center justify-center bg-gray-900/50' style='min-height: 300px;'>
+        <i class='fas fa-check-circle text-green-500 mb-4' style='font-size: 5rem;'></i>
+        <div class='text-green-400 font-bold text-xl'>In Stock</div>
+      </div>
+    `;
+            }
+
+            if (product.description) {
+                modalDescription.innerHTML = `<h3 class="text-lg font-semibold mb-2">Description</h3><p>${product.description}</p>`;
+            } else {
+                modalDescription.innerHTML = '<p class="text-gray-500 italic">No description available.</p>';
+            }
+
+            const isInfiniteStock = product.infinite_stock;
+            const modalQuantityControls = document.getElementById('modalQuantityControls');
+            const modalInfiniteStockNotice = document.getElementById('modalInfiniteStockNotice');
+
+            if (isInfiniteStock) {
+                modalQuantityControls.classList.add('hidden');
+                modalInfiniteStockNotice.classList.remove('hidden');
+                modalQuantity.value = 1;
+            } else {
+                modalQuantityControls.classList.remove('hidden');
+                modalInfiniteStockNotice.classList.add('hidden');
+            }
+
+            if (product.has_duration_pricing && product.pricing_options) {
+                modalDurationSelector.classList.remove('hidden');
+                populateDurationOptions(product.pricing_options);
+                updateDurationPricing();
+            } else {
+                modalDurationSelector.classList.add('hidden');
+                modalPriceContainer.textContent = `$${parseFloat(product.price).toFixed(2)}`;
+                if (isInfiniteStock) {
+                    modalStockDisplay.textContent = 'Unlimited';
+                    updateStockStatus(999999);
+                } else {
+                    modalStockDisplay.textContent = `${product.stock} units available`;
+                    updateStockStatus(product.stock);
+                }
+            }
+
+            modalQuantity.value = 1;
+            modalQuantityDisplay.textContent = '1';
+            modalAddToCartMessage.textContent = '';
+
+            // Check if infinite stock product is already in cart
+            if (isInfiniteStock) {
+                const cartKey = product.has_duration_pricing ? 
+                    `${product._id}_${modalDurationSelect.options[modalDurationSelect.selectedIndex]?.dataset.name || ''}` : 
+                    product._id;
+                
+                if (productQuantities[cartKey] > 0) {
+                    modalAddToCartMessage.innerHTML = '<p class="text-yellow-500"><i class="fas fa-exclamation-triangle mr-1"></i>This infinite stock product is already in your cart. You\'ll receive the same access link/content regardless of quantity.</p>';
+                    modalAddToCart.disabled = true;
+                    modalAddToCart.classList.add('opacity-50', 'cursor-not-allowed');
+                    modalAddToCart.classList.remove('hover:bg-blue-500');
+                    modalAddToCart.innerHTML = '<i class="fas fa-check-circle mr-2"></i>Already in Cart';
+                } else {
+                    // Reset button state when modal opens
+                    modalAddToCart.disabled = false;
+                    modalAddToCart.classList.remove('bg-green-600', 'opacity-50', 'cursor-not-allowed');
+                    modalAddToCart.classList.add('bg-blue-600', 'hover:bg-blue-500');
+                    modalAddToCart.innerHTML = '<i class="fas fa-cart-plus mr-2"></i>Add to Cart';
+                }
+            } else {
+                // Reset button state when modal opens
+                modalAddToCart.disabled = false;
+                modalAddToCart.classList.remove('bg-green-600');
+                modalAddToCart.classList.add('bg-blue-600', 'hover:bg-blue-500');
+                modalAddToCart.innerHTML = '<i class="fas fa-cart-plus mr-2"></i>Add to Cart';
+            }
+        }
+
+        function populateDurationOptions(options) {
+            modalDurationSelect.innerHTML = '';
+            options.forEach((option, index) => {
+                const optionElement = document.createElement('option');
+                optionElement.value = index;
+                optionElement.textContent = `${option.name} - $${parseFloat(option.price).toFixed(2)}`;
+                optionElement.dataset.price = option.price;
+                optionElement.dataset.stock = option.stock || 0;
+                optionElement.dataset.name = option.name;
+                modalDurationSelect.appendChild(optionElement);
+            });
+        }
+
+        function updateDurationPricing() {
+            const selectedOption = modalDurationSelect.options[modalDurationSelect.selectedIndex];
+            if (selectedOption) {
+                const price = parseFloat(selectedOption.dataset.price);
+                const stock = parseInt(selectedOption.dataset.stock);
+                modalPriceContainer.textContent = `$${price.toFixed(2)}`;
+                if (currentProduct && currentProduct.infinite_stock) {
+                    modalStockDisplay.textContent = 'Unlimited';
+                    updateStockStatus(999999);
+                    
+                    // Check if this infinite stock product with selected duration is already in cart
+                    const cartKey = `${currentProduct._id}_${selectedOption.dataset.name}`;
+                    if (productQuantities[cartKey] > 0) {
+                        modalAddToCartMessage.innerHTML = '<p class="text-yellow-500"><i class="fas fa-exclamation-triangle mr-1"></i>This infinite stock product is already in your cart. You\'ll receive the same access link/content regardless of quantity.</p>';
+                        modalAddToCart.disabled = true;
+                        modalAddToCart.classList.add('opacity-50', 'cursor-not-allowed');
+                        modalAddToCart.classList.remove('hover:bg-blue-500');
+                        modalAddToCart.innerHTML = '<i class="fas fa-check-circle mr-2"></i>Already in Cart';
+                    } else {
+                        modalAddToCartMessage.textContent = '';
+                        modalAddToCart.disabled = false;
+                        modalAddToCart.classList.remove('opacity-50', 'cursor-not-allowed');
+                        modalAddToCart.classList.add('hover:bg-blue-500');
+                        modalAddToCart.innerHTML = '<i class="fas fa-cart-plus mr-2"></i>Add to Cart';
+                    }
+                } else {
+                    modalStockDisplay.textContent = `${stock} units available`;
+                    updateStockStatus(stock);
+                }
+            }
+        }
+
+        function updateStockStatus(stock) {
+            modalAddToCart.disabled = false;
+            modalAddToCart.classList.remove('opacity-50', 'cursor-not-allowed');
+
+            if (stock <= 0) {
+                modalStockStatus.textContent = 'Out of Stock';
+                modalStockStatus.className = 'text-sm font-medium px-3 py-1 rounded-full bg-red-100 text-red-700';
+                modalAddToCart.disabled = true;
+                modalAddToCart.classList.add('opacity-50', 'cursor-not-allowed');
+            } else if (stock < 10) {
+                modalStockStatus.textContent = `${stock} left`;
+                modalStockStatus.className = 'text-sm font-medium px-3 py-1 rounded-full bg-yellow-100 text-yellow-700';
+            } else {
+                modalStockStatus.textContent = 'In Stock';
+                modalStockStatus.className = 'text-sm font-medium px-3 py-1 rounded-full bg-green-100 text-green-700';
+            }
+        }
+
+        function showError(message) {
+            modalTitle.textContent = 'Error';
+            modalProductName.textContent = message;
+            modalCategory.textContent = '';
+            modalPriceContainer.textContent = '';
+            modalStockDisplay.textContent = '';
+            modalDescription.innerHTML = '';
+            modalImage.classList.add('hidden');
+            modalImagePlaceholder.classList.remove('hidden');
+        }
+
+        modalDurationSelect.addEventListener('change', updateDurationPricing);
+
+        modalIncrementQty.addEventListener('click', function () {
+            if (currentProduct && currentProduct.infinite_stock) return;
+            let quantity = parseInt(modalQuantity.value);
+            let maxStock = getMaxStock();
+            if (quantity < maxStock) {
+                quantity++;
+                modalQuantity.value = quantity;
+                modalQuantityDisplay.textContent = quantity;
+            }
+        });
+
+        modalDecrementQty.addEventListener('click', function () {
+            if (currentProduct && currentProduct.infinite_stock) return;
+            let quantity = parseInt(modalQuantity.value);
+            if (quantity > 1) {
+                quantity--;
+                modalQuantity.value = quantity;
+                modalQuantityDisplay.textContent = quantity;
+            }
+        });
+
+        function getMaxStock() {
+            if (currentProduct && currentProduct.infinite_stock) {
+                return 999999;
+            }
+            if (currentProduct && currentProduct.has_duration_pricing) {
+                const selectedOption = modalDurationSelect.options[modalDurationSelect.selectedIndex];
+                return selectedOption ? parseInt(selectedOption.dataset.stock) : 0;
+            }
+            return currentProduct ? currentProduct.stock : 0;
+        }
+
+        // Add to cart functionality
+        let isAddingToCart = false;
+        modalAddToCart.addEventListener('click', function () {
+            if (!currentProduct || !currentUsername || isAddingToCart) return;
+
+            // Check if infinite stock product is already in cart
+            if (currentProduct.infinite_stock) {
+                const cartKey = currentProduct.has_duration_pricing ? 
+                    `${currentProduct._id}_${modalDurationSelect.options[modalDurationSelect.selectedIndex].dataset.name}` : 
+                    currentProduct._id;
+                
+                if (productQuantities[cartKey] > 0) {
+                    modalAddToCartMessage.innerHTML = '<p class="text-yellow-500">This infinite stock product is already in your cart. You\'ll receive the same access link/content regardless of quantity.</p>';
+                    return;
+                }
+            }
+
+            isAddingToCart = true;
+            const quantity = parseInt(modalQuantity.value);
+            let data = {
+                product_id: currentProduct._id,
+                quantity: quantity,
+                username: currentUsername
+            };
+
+            if (currentProduct.has_duration_pricing) {
+                const selectedOption = modalDurationSelect.options[modalDurationSelect.selectedIndex];
+                data.duration = selectedOption.dataset.name;
+            }
+
+            modalAddToCart.disabled = true;
+            modalAddToCart.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Adding...';
+
+            fetch('/api/cart/add', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Update modal button to success state
+                        modalAddToCart.classList.remove('bg-blue-600', 'hover:bg-blue-500');
+                        modalAddToCart.classList.add('bg-green-600');
+                        modalAddToCart.innerHTML = '<i class="fas fa-check-circle mr-2"></i>Added!';
+
+                        // Refresh the main page's UI (cart count and buttons)
+                        if (window.loadCartDataAndUpdateUI) {
+                            window.loadCartDataAndUpdateUI();
+                        }
+
+                    } else {
+                        // On failure, re-enable the button and show original text
+                        modalAddToCart.disabled = false;
+                        modalAddToCart.classList.remove('bg-green-600');
+                        modalAddToCart.classList.add('bg-blue-600', 'hover:bg-blue-500');
+                        modalAddToCart.innerHTML = '<i class="fas fa-cart-plus mr-2"></i>Add to Cart';
+                        modalAddToCartMessage.innerHTML = `<p class="text-red-500">${data.message}</p>`;
+                    }
+                    
+                    // Reset the flag after a delay
+                    setTimeout(() => {
+                        isAddingToCart = false;
+                    }, 1000);
+                })
+                .catch(error => {
+                    // On error, also re-enable the button
+                    modalAddToCart.disabled = false;
+                    modalAddToCart.classList.remove('bg-green-600');
+                    modalAddToCart.classList.add('bg-blue-600', 'hover:bg-blue-500');
+                    modalAddToCart.innerHTML = '<i class="fas fa-cart-plus mr-2"></i>Add to Cart';
+                    console.error('Error adding to cart:', error);
+                    modalAddToCartMessage.innerHTML = '<p class="text-red-500">Failed to add to cart</p>';
+                    
+                    // Reset the flag after a delay
+                    setTimeout(() => {
+                        isAddingToCart = false;
+                    }, 1000);
+                });
+        });
+    });
+
+    // Online status update functionality
+    function updateOnlineStatus() {
+        const username = '{{ username }}';
+        fetch(`/api/online-status/${username}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const statusElement = document.querySelector('.online-status-indicator');
+                    if (statusElement) {
+                        const isOnline = data.online_status === 'online';
+
+                        if (isOnline) {
+                            statusElement.className = 'online-status-indicator inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-green-500/10 text-green-300 ring-1 ring-inset ring-green-500/20';
+                            statusElement.innerHTML = `
+                                    <span class="h-1.5 w-1.5 mr-1.5 rounded-full bg-green-400 animate-pulse"></span>Online
+                                `;
+                        } else {
+                            statusElement.className = 'online-status-indicator inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-gray-500/10 text-gray-300 ring-1 ring-inset ring-gray-500/20';
+                            statusElement.innerHTML = `
+                                    <span class="h-1.5 w-1.5 mr-1.5 rounded-full bg-gray-400"></span>${data.last_online_message}
+                                `;
+                        }
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error updating online status:', error);
+            });
+    }
+
+    setInterval(updateOnlineStatus, 30000);
+    updateOnlineStatus();
+
+    // Dynamic search functionality is now loaded from static/js/dynamic-search.js
+</script>
+
+<!-- Import dynamic search functionality -->
+<script src="{{ url_for('static', filename='js/dynamic-search.js') }}"></script>
+</body>
+
+</html>

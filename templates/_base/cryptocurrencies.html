@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <title>Supported Cryptocurrencies | ShopsyPro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='assets/default_avatar.png') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --background-start-rgb: 23, 23, 33;
+            --background-end-rgb: 31, 41, 55;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(to bottom, rgb(var(--background-start-rgb)), rgb(var(--background-end-rgb))) fixed;
+            color: #E5E7EB;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .font-heading {
+            font-family: 'Poppins', sans-serif;
+        }
+
+        main {
+            flex: 1;
+        }
+
+        .glass-effect {
+            background: rgba(23, 23, 33, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <!-- Header -->
+    <header class="glass-effect sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-4">
+                <a href="{{ url_for('dashboard.home') }}" class="text-2xl font-bold font-heading text-white tracking-tight hover:text-blue-300 transition-colors">
+                    ShopsyPro<span class="text-blue-400">.</span>
+                </a>
+                <nav class="hidden md:flex items-center space-x-8">
+                    <a href="{{ url_for('dashboard.home') }}" class="text-gray-300 hover:text-white transition-colors">Home</a>
+                    <a href="{{ url_for('orders.track_orders') }}" class="text-gray-300 hover:text-white transition-colors">Track Orders</a>
+                </nav>
+                <!-- Mobile menu button -->
+                <button class="md:hidden text-gray-300 hover:text-white transition-colors" onclick="toggleMobileMenu()">
+                    <i class="fas fa-bars text-xl"></i>
+                </button>
+            </div>
+            
+            <!-- Mobile menu -->
+            <div id="mobileMenu" class="md:hidden hidden bg-gray-900/95 backdrop-blur-lg border-t border-gray-700/50">
+                <div class="px-4 py-6 space-y-4">
+                    <a href="{{ url_for('dashboard.home') }}" class="block text-gray-300 hover:text-white transition-colors py-2">Home</a>
+                    <a href="{{ url_for('orders.track_orders') }}" class="block text-gray-300 hover:text-white transition-colors py-2">Track Orders</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-grow p-4 sm:p-6 md:p-8">
+        <div class="max-w-4xl mx-auto">
+            <!-- Header -->
+            <div class="mb-8">
+                <h1 class="text-3xl font-bold text-slate-100">Supported Cryptocurrencies</h1>
+                <p class="text-slate-400 mt-1">Accept payments in 30+ cryptocurrencies through secure Cryptomus integration.</p>
+            </div>
+
+            <!-- Main Card -->
+            <div class="bg-slate-800/80 rounded-xl border border-slate-700">
+                <div class="p-6 sm:p-8">
+                    <!-- Major Coins Section -->
+                    <div class="mb-8">
+                        <div class="flex items-center mb-6">
+                            <div class="bg-orange-500/10 p-3 rounded-lg border border-orange-500/20">
+                                <i class="fab fa-bitcoin text-orange-400 text-xl"></i>
+                            </div>
+                            <h3 class="text-xl font-semibold text-slate-100 ml-4">Major Cryptocurrencies</h3>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+                            <div class="flex items-center text-slate-300">
+                                <span class="w-8 h-8 bg-orange-500/20 rounded-full flex items-center justify-center mr-3">
+                                    <i class="fab fa-bitcoin text-orange-400 text-sm"></i>
+                                </span>
+                                <span class="font-medium">Bitcoin (BTC)</span>
+                            </div>
+                            <div class="flex items-center text-slate-300">
+                                <span class="w-8 h-8 bg-blue-500/20 rounded-full flex items-center justify-center mr-3">
+                                    <i class="fab fa-ethereum text-blue-400 text-sm"></i>
+                                </span>
+                                <span class="font-medium">Ethereum (ETH)</span>
+                            </div>
+                            <div class="flex items-center text-slate-300">
+                                <span class="w-8 h-8 bg-green-500/20 rounded-full flex items-center justify-center mr-3">
+                                    <span class="text-green-400 text-xs font-bold">₮</span>
+                                </span>
+                                <span class="font-medium">Tether (USDT)</span>
+                            </div>
+                            <div class="flex items-center text-slate-300">
+                                <span class="w-8 h-8 bg-blue-600/20 rounded-full flex items-center justify-center mr-3">
+                                    <span class="text-blue-500 text-xs font-bold">$</span>
+                                </span>
+                                <span class="font-medium">USD Coin (USDC)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Popular Altcoins Section -->
+                    <div class="mb-8">
+                        <h4 class="text-sm font-semibold text-slate-400 pt-4 mt-2 border-t border-slate-700 mb-4">Popular Altcoins</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3">
+                            <div class="flex items-center text-slate-300">
+                                <span class="w-6 h-6 bg-yellow-500/20 rounded-full flex items-center justify-center mr-3">
+                                    <span class="text-yellow-400 text-xs font-bold">B</span>
+                                </span>
+                                <span>Binance Coin (BNB)</span>
+                            </div>
+                            <div class="flex items-center text-slate-300">
+                                <span class="w-6 h-6 bg-purple-500/20 rounded-full flex items-center justify-center mr-3">
+                                    <span class="text-purple-400 text-xs font-bold">◎</span>
+                                </span>
+                                <span>Solana (SOL)</span>
+                            </div>
+                            <div class="flex items-center text-slate-300">
+                                <span class="w-6 h-6 bg-yellow-600/20 rounded-full flex items-center justify-center mr-3">
+                                    <span class="text-yellow-400 text-xs font-bold">Ð</span>
+                                </span>
+                                <span>Dogecoin (DOGE)</span>
+                            </div>
+                            <div class="flex items-center text-slate-300">
+                                <span class="w-6 h-6 bg-red-500/20 rounded-full flex items-center justify-center mr-3">
+                                    <span class="text-red-400 text-xs font-bold">T</span>
+                                </span>
+                                <span>Tron (TRX)</span>
+                            </div>
+                            <div class="flex items-center text-slate-300">
+                                <span class="w-6 h-6 bg-slate-500/20 rounded-full flex items-center justify-center mr-3">
+                                    <span class="text-slate-400 text-xs font-bold">Ł</span>
+                                </span>
+                                <span>Litecoin (LTC)</span>
+                            </div>
+                            <div class="flex items-center text-slate-300">
+                                <span class="w-6 h-6 bg-green-600/20 rounded-full flex items-center justify-center mr-3">
+                                    <span class="text-green-400 text-xs font-bold">₿</span>
+                                </span>
+                                <span>Bitcoin Cash (BCH)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Complete List Section -->
+                    <div class="mb-8">
+                        <h4 class="text-sm font-semibold text-slate-400 pt-4 mt-2 border-t border-slate-700 mb-4">Complete List (30+ Supported)</h4>
+                        <div class="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 text-sm">
+                            <div class="bg-slate-700/30 p-2 rounded text-center">
+                                <div class="font-medium text-slate-200">USDT</div>
+                                <div class="text-xs text-slate-400">Tether</div>
+                            </div>
+                            <div class="bg-slate-700/30 p-2 rounded text-center">
+                                <div class="font-medium text-slate-200">BTC</div>
+                                <div class="text-xs text-slate-400">Bitcoin</div>
+                            </div>
+                            <div class="bg-slate-700/30 p-2 rounded text-center">
+                                <div class="font-medium text-slate-200">ETH</div>
+                                <div class="text-xs text-slate-400">Ethereum</div>
+                            </div>
+                            <div class="bg-slate-700/30 p-2 rounded text-center">
+                                <div class="font-medium text-slate-200">BNB</div>
+                                <div class="text-xs text-slate-400">Binance Coin</div>
+                            </div>
+                            <div class="bg-slate-700/30 p-2 rounded text-center">
+                                <div class="font-medium text-slate-200">SOL</div>
+                                <div class="text-xs text-slate-400">Solana</div>
+                            </div>
+                            <div class="bg-slate-700/30 p-2 rounded text-center">
+                                <div class="font-medium text-slate-200">USDC</div>
+                                <div class="text-xs text-slate-400">USD Coin</div>
+                            </div>
+                            <div class="bg-slate-700/30 p-2 rounded text-center">
+                                <div class="font-medium text-slate-200">DOGE</div>
+                                <div class="text-xs text-slate-400">Dogecoin</div>
+                            </div>
+                            <div class="bg-slate-700/30 p-2 rounded text-center">
+                                <div class="font-medium text-slate-200">TRX</div>
+                                <div class="text-xs text-slate-400">Tron</div>
+                            </div>
+                            <div class="bg-slate-700/30 p-2 rounded text-center">
+                                <div class="font-medium text-slate-200">AVAX</div>
+                                <div class="text-xs text-slate-400">Avalanche</div>
+                            </div>
+                            <div class="bg-slate-700/30 p-2 rounded text-center">
+                                <div class="font-medium text-slate-200">BCH</div>
+                                <div class="text-xs text-slate-400">Bitcoin Cash</div>
+                            </div>
+                            <div class="bg-slate-700/30 p-2 rounded text-center">
+                                <div class="font-medium text-slate-200">LINK</div>
+                                <div class="text-xs text-slate-400">Chainlink</div>
+                            </div>
+                            <div class="bg-slate-700/30 p-2 rounded text-center">
+                                <div class="font-medium text-slate-200">LTC</div>
+                                <div class="text-xs text-slate-400">Litecoin</div>
+                            </div>
+                            <div class="bg-slate-700/30 p-2 rounded text-center">
+                                <div class="font-medium text-slate-200">DAI</div>
+                                <div class="text-xs text-slate-400">Dai</div>
+                            </div>
+                            <div class="bg-slate-700/30 p-2 rounded text-center">
+                                <div class="font-medium text-slate-200">UNI</div>
+                                <div class="text-xs text-slate-400">Uniswap</div>
+                            </div>
+                            <div class="bg-slate-700/30 p-2 rounded text-center">
+                                <div class="font-medium text-slate-200">AAVE</div>
+                                <div class="text-xs text-slate-400">Aave</div>
+                            </div>
+                            <div class="bg-slate-700/30 p-2 rounded text-center">
+                                <div class="font-medium text-slate-200">CRV</div>
+                                <div class="text-xs text-slate-400">Curve</div>
+                            </div>
+                            <div class="bg-slate-700/30 p-2 rounded text-center">
+                                <div class="font-medium text-slate-200">XCN</div>
+                                <div class="text-xs text-slate-400">Chain</div>
+                            </div>
+                            <div class="bg-slate-700/30 p-2 rounded text-center">
+                                <div class="font-medium text-slate-200">SUSHI</div>
+                                <div class="text-xs text-slate-400">SushiSwap</div>
+                            </div>
+                            <div class="bg-slate-700/30 p-2 rounded text-center">
+                                <div class="font-medium text-slate-200">RSR</div>
+                                <div class="text-xs text-slate-400">Reserve Rights</div>
+                            </div>
+                            <div class="bg-slate-700/30 p-2 rounded text-center">
+                                <div class="font-medium text-slate-200">APE</div>
+                                <div class="text-xs text-slate-400">ApeCoin</div>
+                            </div>
+                            <div class="bg-slate-700/30 p-2 rounded text-center">
+                                <div class="font-medium text-slate-200">AXS</div>
+                                <div class="text-xs text-slate-400">Axie Infinity</div>
+                            </div>
+                            <div class="bg-slate-700/30 p-2 rounded text-center">
+                                <div class="font-medium text-slate-200">DYDX</div>
+                                <div class="text-xs text-slate-400">dYdX</div>
+                            </div>
+                            <div class="bg-slate-700/30 p-2 rounded text-center">
+                                <div class="font-medium text-slate-200">FET</div>
+                                <div class="text-xs text-slate-400">Fetch.ai</div>
+                            </div>
+                            <div class="bg-slate-700/30 p-2 rounded text-center">
+                                <div class="font-medium text-slate-200">SHIB</div>
+                                <div class="text-xs text-slate-400">Shiba Inu</div>
+                            </div>
+                            <div class="bg-slate-700/30 p-2 rounded text-center">
+                                <div class="font-medium text-slate-200">PEPE</div>
+                                <div class="text-xs text-slate-400">Pepe</div>
+                            </div>
+                            <div class="bg-slate-700/30 p-2 rounded text-center">
+                                <div class="font-medium text-slate-200">BONK</div>
+                                <div class="text-xs text-slate-400">Bonk</div>
+                            </div>
+                            <div class="bg-slate-700/30 p-2 rounded text-center">
+                                <div class="font-medium text-slate-200">ORCA</div>
+                                <div class="text-xs text-slate-400">Orca</div>
+                            </div>
+                            <div class="bg-slate-700/30 p-2 rounded text-center">
+                                <div class="font-medium text-slate-200">JUP</div>
+                                <div class="text-xs text-slate-400">Jupiter</div>
+                            </div>
+                            <div class="bg-slate-700/30 p-2 rounded text-center">
+                                <div class="font-medium text-slate-200">ZBCN</div>
+                                <div class="text-xs text-slate-400">Zebec Network</div>
+                            </div>
+                            <div class="bg-slate-700/30 p-2 rounded text-center">
+                                <div class="font-medium text-slate-200">COMP</div>
+                                <div class="text-xs text-slate-400">Compound</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Security Info Section (integrated) -->
+                    <div class="pt-4 mt-2 border-t border-slate-700">
+                        <div class="flex items-center mb-4">
+                            <div class="bg-green-500/10 p-2 rounded border border-green-500/20 mr-3">
+                                <i class="fas fa-shield-alt text-green-400"></i>
+                            </div>
+                            <h4 class="text-sm font-semibold text-slate-300">Secure Cryptomus Integration</h4>
+                        </div>
+                        <div class="space-y-2 text-xs text-slate-400">
+                            <div class="flex items-start">
+                                <span class="text-green-400 mr-2 mt-0.5">✓</span>
+                                <span>All payments processed through secure gateway</span>
+                            </div>
+                            <div class="flex items-start">
+                                <span class="text-green-400 mr-2 mt-0.5">✓</span>
+                                <span>Real-time payment verification</span>
+                            </div>
+                            <div class="flex items-start">
+                                <span class="text-green-400 mr-2 mt-0.5">✓</span>
+                                <span>Multiple blockchain networks supported</span>
+                            </div>
+                            <div class="flex items-start">
+                                <span class="text-green-400 mr-2 mt-0.5">✓</span>
+                                <span>Automatic conversion and settlement</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    {% include 'components/footer.html' %}
+
+    <script>
+        // Mobile menu functionality
+        function toggleMobileMenu() {
+            const mobileMenu = document.getElementById('mobileMenu');
+            mobileMenu.classList.toggle('hidden');
+        }
+    </script>
+</body>
+</html>

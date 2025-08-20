@@ -1,0 +1,209 @@
+{% extends "_base/base.html" %}
+
+{% block title %}Categories | ShopsyPro{% endblock %}
+
+{% block content %}    
+<section id="categories" class="min-h-screen p-4 sm:p-6 md:p-8 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+    <div class="max-w-6xl mx-auto" x-data="{ showAddForm: false }">
+      <header class="mb-8">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+                <h2 class="text-3xl font-bold text-slate-100">Categories</h2>
+                <p class="text-slate-400 mt-1">Organize your products by creating and managing categories.</p>
+            </div>
+            <button @click="showAddForm = !showAddForm" class="w-full md:w-auto flex items-center justify-center px-5 py-2.5 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-900 focus:ring-blue-500 transition">
+                <svg x-show="!showAddForm" class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                <svg x-show="showAddForm" class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                <span x-text="showAddForm ? 'Cancel' : 'Add New Category'"></span>
+            </button>
+        </div>
+      </header>
+
+      <div x-show="showAddForm" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 transform -translate-y-4" x-transition:enter-end="opacity-100 transform translateY-0" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100 transform translateY-0" x-transition:leave-end="opacity-0 transform -translate-y-4" class="mb-8 max-w-2xl mx-auto">
+        <div class="bg-slate-800/80 rounded-xl p-6 sm:p-8 border border-slate-700">
+          <h3 class="text-xl font-semibold text-white mb-6">Add a New Category</h3>
+          <form id="addCategoryForm" action="{{ url_for('categories.add_category') }}" method="POST" class="space-y-4">
+            <div>
+              <label for="categoryName" class="block text-sm font-medium text-slate-300 mb-2">Category Name</label>
+              <input type="text" id="categoryName" name="categoryName" class="w-full p-3 bg-slate-700/50 border border-slate-600 rounded-lg text-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" required>
+            </div>
+            
+            <div>
+              <label for="categoryDescription" class="block text-sm font-medium text-slate-300 mb-2">Description <span class="text-slate-500">(Optional)</span></label>
+              <textarea id="categoryDescription" name="categoryDescription" rows="3" class="w-full p-3 bg-slate-700/50 border border-slate-600 rounded-lg text-slate-200 resize-y focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"></textarea>
+            </div>
+            
+            <div class="pt-2">
+              <button type="submit" class="w-full px-5 py-2.5 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition">Create Category</button>
+            </div>
+          </form>
+        </div>
+      </div>
+        
+      <div>
+        {% if categories %}
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {% for category in categories %}
+              <div class="bg-slate-800/80 rounded-xl p-5 border border-slate-700 flex flex-col group hover:border-blue-500/30 transition-all duration-300 transform hover:-translate-y-1">
+                <div class="flex-grow">
+                  <div class="flex justify-between items-start mb-3">
+                    <h4 class="text-lg font-bold text-slate-100 group-hover:text-blue-400 transition-colors">{{ category.name }}</h4>
+                    <div class="bg-slate-700/50 px-2.5 py-1 rounded-full text-xs font-semibold text-slate-300 border border-slate-600">{{ category.product_count }} Product{{ 's' if category.product_count != 1 else '' }}</div>
+                  </div>
+                  <p class="text-slate-400 text-sm leading-relaxed min-h-[40px]">{{ category.description | truncate(80, True) or 'No description provided.' }}</p>
+                </div>
+                
+                <div class="mt-4 pt-4 border-t border-slate-700 flex items-center justify-end space-x-2">
+                  <a href="{{ url_for('products.add_product_page') }}?category={{ category._id }}" class="p-2 text-slate-400 hover:text-green-400 transition rounded-md hover:bg-green-500/10" title="Add product to {{category.name}}">
+                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                  </a>
+                  <button class="p-2 text-slate-400 hover:text-blue-400 transition rounded-md hover:bg-blue-500/10 edit-category-btn" data-id="{{ category._id }}" data-name="{{ category.name }}" data-description="{{ category.description or '' }}" title="Edit {{category.name}}">
+                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                  </button>
+                  <button class="p-2 text-slate-400 hover:text-red-400 transition rounded-md hover:bg-red-500/10 delete-category-btn" data-id="{{ category._id }}" title="Delete {{category.name}}">
+                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                  </button>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="text-center py-16 bg-slate-800/50 rounded-xl border border-slate-700">
+            <h3 class="text-2xl font-bold text-white mb-2">No Categories Yet</h3>
+            <p class="text-slate-400 mb-6">Create your first category to start organizing your products.</p>
+            <button @click="showAddForm = true" class="px-5 py-2.5 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition">Create Your First Category</button>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+</section>
+
+<div id="editCategoryModal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 transition-opacity duration-300">
+  <div class="bg-slate-900 rounded-xl border border-slate-700 shadow-2xl w-full max-w-lg mx-auto transform transition-all duration-300 scale-95">
+    <div class="p-8">
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="text-xl font-bold text-white">Edit Category</h3>
+            <button id="closeEditCategoryModal" class="text-slate-500 hover:text-white transition p-1"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+        </div>
+        <form id="editCategoryForm" method="POST" class="space-y-4">
+            <input type="hidden" id="editCategoryId" name="categoryId">
+            <div>
+                <label for="editCategoryName" class="block text-sm font-medium text-slate-300 mb-2">Category Name</label>
+                <input type="text" id="editCategoryName" name="categoryName" class="w-full p-3 bg-slate-800 border border-slate-700 rounded-lg text-slate-200 focus:ring-2 focus:ring-blue-500 transition" required>
+            </div>
+            <div>
+                <label for="editCategoryDescription" class="block text-sm font-medium text-slate-300 mb-2">Description</label>
+                <textarea id="editCategoryDescription" name="categoryDescription" rows="3" class="w-full p-3 bg-slate-800 border border-slate-700 rounded-lg text-slate-200 resize-y focus:ring-2 focus:ring-blue-500 transition"></textarea>
+            </div>
+            <div class="flex justify-end space-x-3 pt-4">
+                <button type="button" id="cancelEditCategory" class="px-5 py-2 text-sm font-semibold text-slate-300 bg-slate-700/70 rounded-lg hover:bg-slate-700 transition">Cancel</button>
+                <button type="submit" class="px-5 py-2 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition">Save Changes</button>
+            </div>
+        </form>
+    </div>
+  </div>
+</div>
+
+<div id="deleteCategoryModal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 transition-opacity duration-300">
+  <div class="bg-slate-900 rounded-xl border border-slate-700 shadow-2xl w-full max-w-md mx-auto transform transition-all duration-300 scale-95">
+    <div class="p-8 text-center">
+        <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-500/10 mb-4 border border-red-500/20">
+            <svg class="h-6 w-6 text-red-400" stroke="currentColor" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+        </div>
+        <h3 class="text-lg font-semibold text-white">Delete Category</h3>
+        <p class="mt-2 text-sm text-slate-400">Are you sure? Products in this category will become uncategorized. This action cannot be undone.</p>
+        <form id="deleteCategoryForm" method="POST" class="mt-6 flex justify-center space-x-3">
+            <input type="hidden" id="deleteCategoryId" name="categoryId">
+            <button type="button" id="cancelDeleteCategory" class="px-5 py-2 text-sm font-semibold text-slate-300 bg-slate-700/70 rounded-lg hover:bg-slate-700 transition">Cancel</button>
+            <button type="submit" class="px-5 py-2 text-sm font-semibold text-white bg-red-600 rounded-lg hover:bg-red-700 transition">Delete</button>
+        </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // --- Edit Category Modal ---
+    const editCategoryModal = document.getElementById('editCategoryModal');
+    const editButtons = document.querySelectorAll('.edit-category-btn');
+    const closeEditBtn = document.getElementById('closeEditCategoryModal');
+    const cancelEditBtn = document.getElementById('cancelEditCategory');
+    const editForm = document.getElementById('editCategoryForm');
+
+    function toggleEditModal(show) {
+        const modalContent = editCategoryModal.querySelector('.transform');
+        if (show) {
+            editCategoryModal.classList.remove('hidden');
+            setTimeout(() => {
+                editCategoryModal.classList.add('opacity-100');
+                modalContent.classList.remove('scale-95');
+            }, 10);
+        } else {
+            editCategoryModal.classList.remove('opacity-100');
+            modalContent.classList.add('scale-95');
+            setTimeout(() => editCategoryModal.classList.add('hidden'), 300);
+        }
+    }
+
+    editButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const categoryId = this.dataset.id;
+            document.getElementById('editCategoryId').value = categoryId;
+            document.getElementById('editCategoryName').value = this.dataset.name;
+            document.getElementById('editCategoryDescription').value = this.dataset.description;
+            editForm.action = `/categories/edit/${categoryId}`;
+            toggleEditModal(true);
+        });
+    });
+
+    if(closeEditBtn) closeEditBtn.addEventListener('click', () => toggleEditModal(false));
+    if(cancelEditBtn) cancelEditBtn.addEventListener('click', () => toggleEditModal(false));
+
+    // --- Delete Category Modal ---
+    const deleteCategoryModal = document.getElementById('deleteCategoryModal');
+    const deleteButtons = document.querySelectorAll('.delete-category-btn');
+    const cancelDeleteBtn = document.getElementById('cancelDeleteCategory');
+    const deleteForm = document.getElementById('deleteCategoryForm');
+
+    // Note: The close button for the delete modal isn't in the HTML, so we don't select it.
+    
+    function toggleDeleteModal(show) {
+        const modalContent = deleteCategoryModal.querySelector('.transform');
+        if (show) {
+            deleteCategoryModal.classList.remove('hidden');
+            setTimeout(() => {
+                deleteCategoryModal.classList.add('opacity-100');
+                modalContent.classList.remove('scale-95');
+            }, 10);
+        } else {
+            deleteCategoryModal.classList.remove('opacity-100');
+            modalContent.classList.add('scale-95');
+            setTimeout(() => deleteCategoryModal.classList.add('hidden'), 300);
+        }
+    }
+
+    deleteButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const categoryId = this.dataset.id;
+            document.getElementById('deleteCategoryId').value = categoryId;
+            deleteForm.action = `/categories/delete/${categoryId}`;
+            toggleDeleteModal(true);
+        });
+    });
+
+    if(cancelDeleteBtn) cancelDeleteBtn.addEventListener('click', () => toggleDeleteModal(false));
+
+    // --- General: Close modals with Escape key ---
+    document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape') {
+            if (editCategoryModal && !editCategoryModal.classList.contains('hidden')) {
+                toggleEditModal(false);
+            }
+            if (deleteCategoryModal && !deleteCategoryModal.classList.contains('hidden')) {
+                toggleDeleteModal(false);
+            }
+        }
+    });
+  });
+</script>
+{% endblock %}

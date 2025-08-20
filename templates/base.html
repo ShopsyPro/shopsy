@@ -1,0 +1,299 @@
+
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+   <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+      <meta name="description" content="A powerful admin dashboard for managing your online shop, products, coupons, and tracking revenue metrics with an intuitive dark-themed interface.">
+      <meta name="theme-color" content="#0f172a">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge">
+      
+      <script defer src="https://cdnjs.cloudflare.com/ajax/libs/alpinejs/3.13.3/cdn.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+      <script src="https://cdn.tailwindcss.com"></script>
+      
+      <link rel="icon" type="image/png" href="{{ url_for('static', filename='assets/default_avatar.png') }}">
+      <link rel="preconnect" href="https://fonts.googleapis.com">
+      <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+      <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
+
+      <title>{% block title %}ShopsyPro{% endblock %}</title>
+      
+      <style>
+        :root {
+          --primary-bg: #0f172a;      /* slate-900 */
+          --secondary-bg: #1e293b;    /* slate-800 */
+          --sidebar-bg: rgba(15, 23, 42, 0.8); /* slate-900 with transparency */
+          --border-color: #334155;    /* slate-700 */
+          --border-subtle: rgba(51, 65, 85, 0.5);
+          --text-primary: #f1f5f9;     /* slate-100 */
+          --text-secondary: #94a3b8;   /* slate-400 */
+          --accent-blue: #3b82f6;
+        }
+        
+        body {
+          font-family: 'Inter', system-ui, sans-serif;
+          background-color: var(--primary-bg);
+          color: var(--text-secondary);
+        }
+
+        .font-heading {
+          font-family: 'Poppins', sans-serif;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+          color: var(--text-primary);
+        }
+
+        .sidebar {
+          background: var(--sidebar-bg);
+          border-right: 1px solid var(--border-subtle);
+          backdrop-filter: blur(16px);
+          -webkit-backdrop-filter: blur(16px);
+        }
+
+        .sidebar-item:hover {
+          background: rgba(51, 65, 85, 0.3);
+        }
+
+        .sidebar-item.active {
+          background: rgba(59, 130, 246, 0.1);
+          color: var(--text-primary);
+        }
+        
+        .sidebar-item.active svg {
+          color: var(--accent-blue);
+        }
+        
+        .flash-success {
+          background-color: rgba(16, 185, 129, 0.15);
+          color: #34d399;
+          border: 1px solid rgba(16, 185, 129, 0.2);
+          backdrop-filter: blur(10px);
+        }
+        
+        .flash-error {
+          background-color: rgba(239, 68, 68, 0.15);
+          color: #f87171;
+          border: 1px solid rgba(239, 68, 68, 0.2);
+          backdrop-filter: blur(10px);
+        }
+        
+        .mobile-menu {
+          background: rgba(15, 23, 42, 0.95);
+          backdrop-filter: blur(16px);
+          -webkit-backdrop-filter: blur(16px);
+          border-right: 1px solid var(--border-subtle);
+        }
+
+        .main-scroll::-webkit-scrollbar { width: 6px; }
+        .main-scroll::-webkit-scrollbar-track { background: var(--primary-bg); }
+        .main-scroll::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 3px; }
+      </style>
+      
+   </head>
+   <body class="antialiased">
+      <div class="flex h-screen bg-slate-900 overflow-hidden">
+        <div x-data="{ isOpen: false }" class="relative">
+          <nav class="hidden lg:flex flex-col w-64 h-full sidebar">
+            <div class="flex items-center justify-center h-20 border-b border-slate-800">
+              <a href="{{ url_for('dashboard.dashboard') }}" class="text-2xl font-bold font-heading text-white tracking-tight hover:text-blue-300 transition-colors">
+                ShopsyPro<span class="text-blue-400">.</span>
+              </a>
+            </div>
+            
+            <div class="flex-1 overflow-y-auto p-4">
+              <ul class="space-y-2">
+                <li>
+                  <a href="/dashboard" class="sidebar-item flex items-center p-3 rounded-lg text-slate-300 hover:text-white {% if request.endpoint == 'dashboard.dashboard' %}active{% endif %}">
+                    <svg class="w-5 h-5 mr-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                    Dashboard
+                  </a>
+                </li>
+                <li x-data="{ open: '{{ request.endpoint }}'.startsWith('products.') }">
+                  <button @click="open = !open" class="sidebar-item flex items-center justify-between w-full p-3 rounded-lg text-slate-300 hover:text-white">
+                    <span class="flex items-center">
+                      <svg class="w-5 h-5 mr-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
+                      Products
+                    </span>
+                    <svg class="w-4 h-4 transition-transform" :class="{ 'rotate-180': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                  </button>
+                  <div x-show="open" x-transition class="pl-6 pt-2 space-y-2">
+                    <a href="/add_product" class="sidebar-item flex items-center p-2 rounded-lg text-sm text-slate-400 hover:text-white {% if request.endpoint == 'products.add_product_page' %}active{% endif %}">
+                      <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                      Add Product
+                    </a>
+                    <a href="/products" class="sidebar-item flex items-center p-2 rounded-lg text-sm text-slate-400 hover:text-white {% if request.endpoint == 'products.products' %}active{% endif %}">
+                      <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path></svg>
+                      View Products
+                    </a>
+                  </div>
+                </li>
+                <li>
+                  <a href="/categories" class="sidebar-item flex items-center p-3 rounded-lg text-slate-300 hover:text-white {% if request.endpoint == 'categories.categories' %}active{% endif %}">
+                    <svg class="w-5 h-5 mr-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path></svg>
+                    Categories
+                  </a>
+                </li>
+                <li>
+                  <a href="/orders" class="sidebar-item flex items-center p-3 rounded-lg text-slate-300 hover:text-white {% if request.endpoint == 'orders.orders' %}active{% endif %}">
+                    <svg class="w-5 h-5 mr-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+                    Orders
+                  </a>
+                </li>
+                <li>
+                  <a href="/myshop" class="sidebar-item flex items-center p-3 rounded-lg text-slate-300 hover:text-white {% if request.endpoint == 'shop.myshop' %}active{% endif %}">
+                    <svg class="w-5 h-5 mr-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+                    My Shop
+                  </a>
+                </li>
+                <li>
+                  <a href="/coupons" class="sidebar-item flex items-center p-3 rounded-lg text-slate-300 hover:text-white {% if request.endpoint == 'coupons.coupons' %}active{% endif %}">
+                    <svg class="w-5 h-5 mr-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"></path></svg>
+                    Coupons
+                  </a>
+                </li>
+                 <li>
+                  <a href="/payment-settings" class="sidebar-item flex items-center p-3 rounded-lg text-slate-300 hover:text-white {% if request.endpoint == 'payments.payment_settings' %}active{% endif %}">
+                    <svg class="w-5 h-5 mr-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    Payments
+                  </a>
+                </li>
+                <li>
+                  <a href="/support/tickets" class="sidebar-item flex items-center p-3 rounded-lg text-slate-300 hover:text-white {% if request.endpoint == 'support.merchant_tickets' %}active{% endif %}">
+                    <svg class="w-5 h-5 mr-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    Support Tickets
+                  </a>
+                </li>
+                <li>
+                  <a href="/subscriptions/upgrade" class="sidebar-item flex items-center p-3 rounded-lg text-slate-300 hover:text-white {% if request.endpoint.startswith('subscriptions.') %}active{% endif %}">
+                    {% if Shop.get_by_id(session.get('user_id')).get('is_paid', False) %}
+                      <svg class="w-5 h-5 mr-3 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                      <span class="text-green-400">Premium</span>
+                    {% else %}
+                      <svg class="w-5 h-5 mr-3 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                      <span class="text-orange-400">Upgrade</span>
+                    {% endif %}
+                  </a>
+                </li>
+                 <li>
+                  <a href="/settings" class="sidebar-item flex items-center p-3 rounded-lg text-slate-300 hover:text-white {% if request.endpoint == 'shop.update_settings' %}active{% endif %}">
+                    <svg class="w-5 h-5 mr-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                    Settings
+                  </a>
+                </li>
+              </ul>
+            </div>
+            
+            <div class="p-4 border-t border-slate-800">
+                <a href="{{ url_for('auth.logout') }}" class="sidebar-item flex items-center p-3 rounded-lg text-slate-300 hover:text-white bg-slate-800/50 hover:bg-slate-700/50">
+                    <svg class="w-5 h-5 mr-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                    Sign Out
+                </a>
+            </div>
+          </nav>
+          
+          <div class="lg:hidden">
+            <button @click="isOpen = !isOpen" class="fixed top-4 right-4 z-30 p-2 rounded-md text-slate-400 bg-slate-800/50 hover:bg-slate-700/50">
+                <svg x-show="!isOpen" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
+                <svg x-show="isOpen" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+          </div>
+          
+          <div x-show="isOpen" @click.away="isOpen = false" class="lg:hidden fixed inset-0 z-20 mobile-menu">
+            <div class="pt-20 p-4 h-full overflow-y-auto">
+              <ul class="space-y-2">
+                <li>
+                  <a href="/dashboard" class="sidebar-item flex items-center p-3 rounded-lg text-slate-300 hover:text-white" @click="isOpen = false">Dashboard</a>
+                </li>
+                <li x-data="{ open: '{{ request.endpoint }}'.startsWith('products.') }">
+                  <button @click="open = !open" class="sidebar-item flex items-center justify-between w-full p-3 rounded-lg text-slate-300 hover:text-white">
+                    <span class="flex items-center">
+                      <svg class="w-5 h-5 mr-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
+                      Products
+                    </span>
+                    <svg class="w-4 h-4 transition-transform" :class="{ 'rotate-180': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                  </button>
+                  <div x-show="open" x-transition class="pl-6 pt-2 space-y-2">
+                    <a href="/add_product" class="sidebar-item flex items-center p-2 rounded-lg text-sm text-slate-400 hover:text-white" @click="isOpen = false">
+                      <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                      Add Product
+                    </a>
+                    <a href="/products" class="sidebar-item flex items-center p-2 rounded-lg text-sm text-slate-400 hover:text-white" @click="isOpen = false">
+                      <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path></svg>
+                      View Products
+                    </a>
+                  </div>
+                </li>
+                <li>
+                  <a href="/categories" class="sidebar-item flex items-center p-3 rounded-lg text-slate-300 hover:text-white" @click="isOpen = false">Categories</a>
+                </li>
+                <li>
+                  <a href="/orders" class="sidebar-item flex items-center p-3 rounded-lg text-slate-300 hover:text-white" @click="isOpen = false">Orders</a>
+                </li>
+                <li>
+                  <a href="/myshop" class="sidebar-item flex items-center p-3 rounded-lg text-slate-300 hover:text-white" @click="isOpen = false">My Shop</a>
+                </li>
+                <li>
+                  <a href="/coupons" class="sidebar-item flex items-center p-3 rounded-lg text-slate-300 hover:text-white" @click="isOpen = false">Coupons</a>
+                </li>
+                <li>
+                  <a href="/payment-settings" class="sidebar-item flex items-center p-3 rounded-lg text-slate-300 hover:text-white" @click="isOpen = false">Payments</a>
+                </li>
+                <li>
+                  <a href="/support/tickets" class="sidebar-item flex items-center p-3 rounded-lg text-slate-300 hover:text-white" @click="isOpen = false">Support Tickets</a>
+                </li>
+                <li>
+                  <a href="/subscriptions/upgrade" class="sidebar-item flex items-center p-3 rounded-lg text-slate-300 hover:text-white" @click="isOpen = false">
+                    {% if Shop.get_by_id(session.get('user_id')).get('is_paid', False) %}
+                      Premium
+                    {% else %}
+                      Upgrade
+                    {% endif %}
+                  </a>
+                </li>
+                <li>
+                  <a href="/settings" class="sidebar-item flex items-center p-3 rounded-lg text-slate-300 hover:text-white" @click="isOpen = false">Settings</a>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        
+        <main class="flex-1 overflow-y-auto main-scroll">
+          {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+              <div id="flash-container" class="fixed top-5 right-5 z-50 w-full max-w-sm space-y-3">
+                {% for category, message in messages %}
+                  <div class="flash-alert flash-{{ category }} flex items-start p-4 rounded-xl shadow-lg" data-flash-message>
+                    <p class="flex-grow text-sm font-medium">{{ message }}</p>
+                    <button type="button" class="ml-4 -mr-1 -mt-1 p-1 rounded-md hover:bg-white/10" onclick="this.closest('[data-flash-message]').remove()">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                  </div>
+                {% endfor %}
+              </div>
+            {% endif %}
+          {% endwith %}
+          
+          {% block content %}{% endblock %}
+        </main>
+      </div>
+
+      <script>
+        document.addEventListener('DOMContentLoaded', function() {
+          const flashMessages = document.querySelectorAll('[data-flash-message]');
+          flashMessages.forEach(function(message) {
+            // Auto-dismiss after 5 seconds
+            setTimeout(function() {
+              if (message) {
+                message.style.transition = 'opacity 0.5s ease';
+                message.style.opacity = '0';
+                setTimeout(() => message.remove(), 500);
+              }
+            }, 5000);
+          });
+        });
+      </script>
+   </body>
+</html>

@@ -1,0 +1,1310 @@
+{% extends "_base/base.html" %}
+{% block title %}ShopsyPro | Add New Product{% endblock %}
+{% block content %}
+<section id="add_product" class="min-h-screen p-6 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900" style="display: block;">
+  <div class="max-w-7xl mx-auto">
+    <!-- Header -->
+    <header class="mb-8 flex justify-between items-center">
+      <div>
+        <h2 class="text-2xl font-bold text-white">Add New Product</h2>
+        <p class="text-gray-400">Create a new product for your inventory</p>
+      </div>
+                <a href="{{ url_for('products.products') }}"
+        class="px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition-colors flex items-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24"
+          stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+        </svg>
+        View All Products
+      </a>
+    </header>
+
+
+
+    <!-- Add Product Form -->
+    <div class="bg-gray-900 rounded-lg p-6 border border-gray-800">
+              <form id="addProductForm" action="{{ url_for('products.add_product') }}" method="POST" enctype="multipart/form-data">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+          <!-- Left Column: Main Content -->
+          <div class="lg:col-span-2 space-y-8">
+
+            <!-- Card 1: Product Details -->
+            <div class="bg-gray-800/50 rounded-lg p-6 border border-gray-700/50">
+              <h3 class="text-xl font-semibold text-white mb-6">Product Details</h3>
+              <div class="space-y-6">
+                <div>
+                  <label for="productName" class="block text-sm font-medium text-gray-400 mb-2">Product Name</label>
+                  <input type="text" id="productName" name="productName"
+                    class="w-full px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Enter product name" required>
+                </div>
+
+                <div>
+                  <label for="productCategory" class="block text-sm font-medium text-gray-400 mb-2">Category</label>
+                  <select id="productCategory" name="productCategory"
+                    class="w-full px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <option value="">ALL</option>
+                    {% for category in categories %}
+                    <option value="{{ category._id }}" {% if selected_category and
+                      selected_category==category._id|string %}selected{% endif %}>{{ category.name }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+
+                <div>
+                  <label for="productDescription" class="block text-sm font-medium text-gray-400 mb-2">Description
+                    (optional)</label>
+                  
+                  <!-- Rich Text Editor Toolbar -->
+                  <div class="mb-2 flex flex-wrap gap-1 p-2 bg-gray-700 rounded-lg border border-gray-600">
+                    <button type="button" class="rich-text-btn" data-command="bold" title="Bold">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 12h8a4 4 0 100-8H6v8zm0 0h8a4 4 0 110 8H6v-8z"></path>
+                      </svg>
+                    </button>
+                    <button type="button" class="rich-text-btn" data-command="italic" title="Italic">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
+                      </svg>
+                    </button>
+                    <button type="button" class="rich-text-btn" data-command="underline" title="Underline">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"></path>
+                      </svg>
+                    </button>
+                    <div class="w-px h-6 bg-gray-600 mx-1"></div>
+                    <button type="button" class="rich-text-btn" data-command="insertUnorderedList" title="Bullet List">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
+                      </svg>
+                    </button>
+                    <button type="button" class="rich-text-btn" data-command="insertOrderedList" title="Numbered List">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"></path>
+                      </svg>
+                    </button>
+                    <div class="w-px h-6 bg-gray-600 mx-1"></div>
+                    <button type="button" class="rich-text-btn" data-command="justifyLeft" title="Align Left">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
+                      </svg>
+                    </button>
+                    <button type="button" class="rich-text-btn" data-command="justifyCenter" title="Align Center">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
+                      </svg>
+                    </button>
+                    <button type="button" class="rich-text-btn" data-command="justifyRight" title="Align Right">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
+                      </svg>
+                    </button>
+                  </div>
+                  
+                  <!-- Rich Text Editor Content -->
+                  <div id="richTextEditor" class="w-full px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[120px] max-h-[300px] overflow-y-auto" contenteditable="true" data-placeholder="Enter product description"></div>
+                  <input type="hidden" id="productDescription" name="productDescription">
+                  
+                  <div class="mt-2 text-xs text-gray-500">
+                    <span class="text-blue-400">💡 Tip:</span> Use the toolbar above to format your description. This will be displayed on your shop frontend.
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Card 2: Stock & Delivery -->
+            <div class="bg-gray-800/50 rounded-lg p-6 border border-gray-700/50">
+              <h3 class="text-xl font-semibold text-white mb-6">Stock & Delivery</h3>
+              <div class="space-y-6">
+                <!-- Infinite Stock Toggle -->
+                <div class="flex items-center justify-between p-4 bg-gray-800 rounded-lg border border-gray-700">
+                  <div>
+                    <label class="block text-sm font-medium text-white mb-1">Stock Mode</label>
+                    <p class="text-xs text-gray-400">Choose between limited or unlimited stock</p>
+                  </div>
+                  <div class="flex items-center space-x-3">
+                    <span class="text-sm text-gray-400">Limited</span>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                      <input type="checkbox" id="infiniteStock" name="infiniteStock" class="sr-only peer"
+                        onchange="toggleInfiniteStock()">
+                      <div
+                        class="w-11 h-6 bg-gray-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600">
+                      </div>
+                    </label>
+                    <span class="text-sm text-gray-400">Infinite</span>
+                  </div>
+                </div>
+
+                <!-- Stock Delimiter -->
+                <div>
+                  <label for="stockDelimiter" class="block text-sm font-medium text-gray-400 mb-2">Stock Values
+                    Delimiter</label>
+                  <div class="relative">
+                    <select id="stockDelimiter" name="stockDelimiter"
+                      class="w-full px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none cursor-pointer"
+                      onchange="updateDelimiterExample()">
+                      <option value=",">📝 Comma (,) - Recommended</option>
+                      <option value="|">📊 Pipe (|)</option>
+                      <option value="newline">📄 New Line</option>
+                    </select>
+                    <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                      <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Stock Values Section -->
+                <div id="stockValuesSection">
+                  <label for="stockValues"
+                    class="block w-full text-sm font-medium text-gray-400 mb-2 flex items-center space-x-3">
+                    <span id="stockValuesLabel">Stock Values</span>
+                    <span id="stockCount" class="ml-2 text-blue-400 font-bold">(Stock: 1)</span>
+                    <span id="stockValidation" class="ml-auto text-xs px-2 py-1 rounded-full hidden">
+                    </span>
+                  </label>
+                  <div class="relative">
+                    <textarea id="stockValues" name="stockValues" rows="6"
+                      class="w-full px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm resize-none placeholder="
+                      Enter product stock values here..." oninput="calculateStock()"></textarea>
+                  </div>
+                  <div class="mt-2 p-3 bg-gray-900/50 rounded-lg border border-gray-700/50">
+                    <p class="text-xs text-gray-400 mb-2">💡 <strong id="howItWorksTitle">How it works:</strong></p>
+                    <div id="delimiterExample" class="text-xs text-gray-300 bg-gray-700 p-2 rounded font-mono">
+                      ABCD1234, user:pass, LICENSE123
+                    </div>
+                    <p id="stockDescription" class="text-xs text-gray-500 mt-2">These values will be delivered to
+                      customers via email upon purchase. Stock count is automatically calculated from unique values.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Card 3: Pricing -->
+            <div class="bg-gray-800/50 rounded-lg p-6 border border-gray-700/50">
+              <h3 class="text-xl font-semibold text-white mb-6">Pricing</h3>
+              <div class="space-y-6">
+                <div id="defaultPriceContainer">
+                  <label for="productPrice" class="block text-sm font-medium text-gray-400 mb-2">Default Price
+                    ($)</label>
+                  <input type="number" id="productPrice" name="productPrice" min="0" step="0.01"
+                    class="w-full px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="0.00" required>
+                </div>
+
+                <!-- Pricing Options Section -->
+                <div id="pricing-options-container" class="space-y-4">
+                  <!-- Pricing options will be added here dynamically -->
+                </div>
+
+                <div class="mt-4">
+                  <button type="button" id="add-pricing-option"
+                    class="inline-flex items-center px-4 py-2 bg-purple-600 text-white text-sm rounded-lg hover:bg-purple-700 transition-colors">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                    </svg>
+                    Add Pricing Option
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Column: Sidebar -->
+          <div class="lg:col-span-1 space-y-8">
+
+            <!-- Card 4: Quick Actions -->
+            <div class="bg-gray-800/50 rounded-lg p-6 border border-gray-700/50">
+              <h3 class="text-xl font-semibold text-white mb-6">Quick Actions</h3>
+              <div class="flex flex-col space-y-3">
+                <button type="button" id="quickCreateCategoryBtn"
+                  class="w-full flex items-center justify-center px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl">
+                  <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"></path>
+                  </svg>
+                  Create Category
+                </button>
+                <button type="button" id="quickCreateCouponBtn"
+                  class="w-full flex items-center justify-center px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-lg hover:from-emerald-700 hover:to-teal-700 transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl">
+                  <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z">
+                    </path>
+                  </svg>
+                  Create Coupon
+                </button>
+              </div>
+            </div>
+
+            <!-- Card 5: Product Image -->
+            <div class="bg-gray-800/50 rounded-lg p-6 border border-gray-700/50">
+              <h3 class="text-xl font-semibold text-white mb-6">Product Image</h3>
+              <div>
+                <div class="flex items-center justify-center w-full">
+                  <label for="productImage"
+                    class="flex flex-col items-center justify-center w-full h-40 border-2 border-gray-700 border-dashed rounded-lg cursor-pointer bg-gray-800 hover:bg-gray-700 transition-colors">
+                    <div id="imagePreviewContainer"
+                      class="flex flex-col items-center justify-center pt-5 pb-6 text-center">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 mb-3 text-gray-500" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12">
+                        </path>
+                      </svg>
+                      <p class="mb-1 text-sm text-gray-400"><span class="font-semibold">Click to upload</span> or D&D
+                      </p>
+                      <p class="text-xs text-gray-500">PNG, JPG, GIF up to 2MB</p>
+                    </div>
+                    <input id="productImage" name="productImage" type="file" class="hidden" accept="image/*">
+                  </label>
+                </div>
+                
+                <!-- Image Cropping Controls -->
+                <div id="imageCropControls" class="mt-4 hidden">
+                  <div class="flex items-center justify-between mb-3">
+                    <h4 class="text-sm font-medium text-gray-300">Crop & Preview</h4>
+                    <button type="button" id="cropImageBtn" class="px-3 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 transition-colors">
+                      Apply Crop
+                    </button>
+                  </div>
+                  
+                  <!-- Crop Preview -->
+                  <div class="relative bg-gray-900 rounded-lg p-4 border border-gray-700">
+                    <div class="flex items-center justify-between mb-2">
+                      <span class="text-xs text-gray-400">Shop Frontend Preview:</span>
+                      <div class="flex items-center space-x-2">
+                        <button type="button" id="cropResetBtn" class="text-xs text-gray-400 hover:text-white">Reset</button>
+                        <button type="button" id="cropRotateBtn" class="text-xs text-gray-400 hover:text-white">Rotate</button>
+                      </div>
+                    </div>
+                    
+                    <!-- Device Preview Tabs -->
+                    <div class="flex space-x-1 mb-3">
+                      <button type="button" class="device-tab active px-2 py-1 text-xs rounded bg-blue-600 text-white" data-device="desktop">Desktop</button>
+                      <button type="button" class="device-tab px-2 py-1 text-xs rounded bg-gray-700 text-gray-300 hover:bg-gray-600" data-device="tablet">Tablet</button>
+                      <button type="button" class="device-tab px-2 py-1 text-xs rounded bg-gray-700 text-gray-300 hover:bg-gray-600" data-device="mobile">Mobile</button>
+                    </div>
+                    
+                    <!-- Desktop Preview -->
+                    <div id="desktopPreview" class="device-preview active">
+                      <div class="bg-gray-800 rounded-lg p-3 mb-2">
+                        <div class="text-xs text-gray-400 mb-1">Desktop (3-column grid)</div>
+                        <div class="w-full h-32 bg-gray-700 rounded overflow-hidden">
+                          <div id="cropPreviewDesktop" class="w-full h-full flex items-center justify-center">
+                            <span class="text-gray-500 text-xs">Upload an image to start cropping</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <!-- Tablet Preview -->
+                    <div id="tabletPreview" class="device-preview hidden">
+                      <div class="bg-gray-800 rounded-lg p-3 mb-2">
+                        <div class="text-xs text-gray-400 mb-1">Tablet (2-column grid)</div>
+                        <div class="w-full h-40 bg-gray-700 rounded overflow-hidden">
+                          <div id="cropPreviewTablet" class="w-full h-full flex items-center justify-center">
+                            <span class="text-gray-500 text-xs">Upload an image to start cropping</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <!-- Mobile Preview -->
+                    <div id="mobilePreview" class="device-preview hidden">
+                      <div class="bg-gray-800 rounded-lg p-3 mb-2">
+                        <div class="text-xs text-gray-400 mb-1">Mobile (1-column grid)</div>
+                        <div class="w-full h-48 bg-gray-700 rounded overflow-hidden">
+                          <div id="cropPreviewMobile" class="w-full h-full flex items-center justify-center">
+                            <span class="text-gray-500 text-xs">Upload an image to start cropping</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <!-- Actual Crop Area -->
+                    <div class="mt-3 p-2 bg-gray-800 rounded border border-gray-600">
+                      <div class="text-xs text-gray-400 mb-2">Crop Area (what you're selecting):</div>
+                      <div id="cropPreviewContainer" class="relative w-full h-48 bg-gray-700 rounded-lg overflow-hidden">
+                        <div id="cropPreview" class="w-full h-full flex items-center justify-center">
+                          <span class="text-gray-500 text-sm">Upload an image to start cropping</span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <!-- Crop Aspect Ratio Options -->
+                    <div class="mt-3 flex items-center space-x-2">
+                      <span class="text-xs text-gray-400">Aspect Ratio:</span>
+                      <button type="button" class="crop-ratio-btn active" data-ratio="1:1">1:1</button>
+                      <button type="button" class="crop-ratio-btn" data-ratio="4:3">4:3</button>
+                      <button type="button" class="crop-ratio-btn" data-ratio="16:9">16:9</button>
+                      <button type="button" class="crop-ratio-btn" data-ratio="free">Free</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Card 6: Publish -->
+            <div class="bg-gray-800/50 rounded-lg p-6 border border-gray-700/50">
+              <h3 class="text-xl font-semibold text-white mb-6">Publish</h3>
+              <div class="space-y-4">
+                <!-- Visibility Toggle -->
+                <div class="flex items-center justify-between p-4 bg-gray-800 rounded-lg border border-gray-700">
+                  <div>
+                    <label class="block text-sm font-medium text-white mb-1">Product Visibility</label>
+                    <p class="text-xs text-gray-400">Control whether this product appears on your storefront</p>
+                  </div>
+                  <div class="flex items-center space-x-3">
+                    <span class="text-sm text-gray-400">Hidden</span>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                      <input type="checkbox" id="isVisible" name="isVisible" class="sr-only peer" checked>
+                      <div
+                        class="w-11 h-6 bg-gray-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600">
+                      </div>
+                    </label>
+                    <span class="text-sm text-gray-400">Listed</span>
+                  </div>
+                </div>
+
+                <div id="submitSection" class="flex flex-col space-y-3">
+                  <button type="submit"
+                    class="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900 transition-colors font-semibold">
+                    Add Product
+                  </button>
+                  <a href="{{ url_for('products.products') }}"
+                    class="w-full px-6 py-3 bg-gray-700 text-white rounded-lg hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:ring-offset-gray-900 transition-colors text-center">
+                    Cancel
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
+
+<!-- Modal for Quick Create Category -->
+<div id="categoryModal"
+  class="hidden fixed inset-0 bg-black bg-opacity-80 z-50 flex items-center justify-center transition-all duration-300">
+  <!-- Focus Mode Background Blur -->
+  <div class="absolute inset-0 backdrop-blur-sm"></div>
+
+  <div
+    class="bg-gray-800 rounded-lg p-8 border border-gray-700 w-full max-w-md mx-4 transform transition-all duration-300 scale-95 relative focus-modal-highlight">
+    <!-- Exit Focus Mode Button -->
+    <button id="closeCategoryModal"
+      class="absolute -top-4 -right-4 bg-red-500 hover:bg-red-600 text-white rounded-full p-3 shadow-lg transition-all duration-200 z-10">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+      </svg>
+    </button>
+
+    <div class="flex items-center justify-between mb-6">
+      <h3 class="text-xl font-medium text-white">Create New Category</h3>
+      <div class="px-3 py-1 bg-indigo-500/20 text-indigo-400 text-sm rounded-full border border-indigo-500/30">
+        <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z">
+          </path>
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z">
+          </path>
+        </svg>
+        Focus Mode
+      </div>
+    </div>
+    <form id="createCategoryForm">
+      <div class="space-y-4">
+        <div>
+          <label for="modalCategoryName" class="block text-sm font-medium text-gray-400 mb-2">Category Name</label>
+          <input type="text" id="modalCategoryName" name="categoryName"
+            class="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 text-white focus:border-indigo-500 focus:outline-none"
+            required>
+        </div>
+        <div>
+          <label for="modalCategoryDescription" class="block text-sm font-medium text-gray-400 mb-2">Description
+            (optional)</label>
+          <input type="text" id="modalCategoryDescription" name="categoryDescription"
+            class="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 text-white focus:border-indigo-500 focus:outline-none">
+        </div>
+        <div class="flex justify-end space-x-3 pt-4">
+          <button type="button" id="cancelCategoryModal"
+            class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-500 transition-colors">Cancel</button>
+          <button type="submit"
+            class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">Create
+            Category</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal for Quick Create Coupon -->
+<div id="couponModal"
+  class="hidden fixed inset-0 bg-black bg-opacity-80 z-50 flex items-center justify-center transition-all duration-300">
+  <!-- Focus Mode Background Blur -->
+  <div class="absolute inset-0 backdrop-blur-sm"></div>
+
+  <div
+    class="bg-gray-800 rounded-lg p-8 border border-gray-700 w-full max-w-3xl mx-4 transform transition-all duration-300 scale-95 relative focus-modal-highlight">
+    <!-- Exit Focus Mode Button -->
+    <button id="closeCouponModal"
+      class="absolute -top-4 -right-4 bg-red-500 hover:bg-red-600 text-white rounded-full p-3 shadow-lg transition-all duration-200 z-10">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+      </svg>
+    </button>
+
+    <div class="flex items-center justify-between mb-6">
+      <h3 class="text-xl font-medium text-white">Create New Coupon</h3>
+      <div class="px-3 py-1 bg-amber-500/20 text-amber-400 text-sm rounded-full border border-amber-500/30">
+        <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z">
+          </path>
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z">
+          </path>
+        </svg>
+        Focus Mode
+      </div>
+    </div>
+    <form id="createCouponForm" class="space-y-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label for="modalCouponCode" class="block text-sm font-medium text-gray-400 mb-2">Coupon Code</label>
+          <input type="text" id="modalCouponCode" name="couponCode"
+            class="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 text-white uppercase focus:border-amber-500 focus:outline-none"
+            required>
+        </div>
+        <div>
+          <label for="modalCouponType" class="block text-sm font-medium text-gray-400 mb-2">Discount Type</label>
+          <select id="modalCouponType" name="couponType"
+            class="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 text-white focus:border-amber-500 focus:outline-none">
+            <option value="percentage">Percentage</option>
+            <option value="fixed">Fixed Amount</option>
+          </select>
+        </div>
+        <div>
+          <label for="modalDiscountValue" class="block text-sm font-medium text-gray-400 mb-2">Discount Value</label>
+          <input type="number" id="modalDiscountValue" name="discountValue" min="0" step="0.01"
+            class="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 text-white focus:border-amber-500 focus:outline-none"
+            required>
+        </div>
+        <div>
+          <label for="modalExpiryDate" class="block text-sm font-medium text-gray-400 mb-2">Expiry Date</label>
+          <input type="date" id="modalExpiryDate" name="expiryDate"
+            class="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 text-white [color-scheme:dark] focus:border-amber-500 focus:outline-none"
+            required>
+        </div>
+        <div id="modalConditionalContainer">
+          <label for="modalConditionalValue" class="block text-sm font-medium text-gray-400 mb-2">
+            <span id="modalConditionalLabel">Max Cap (optional)</span>
+          </label>
+          <input type="number" id="modalConditionalValue" name="conditionalValue" min="0" step="0.01"
+            class="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 text-white focus:border-amber-500 focus:outline-none">
+          <p class="mt-1 text-xs text-gray-500">
+            <span id="modalConditionalDescription">Maximum amount that can be discounted</span>
+          </p>
+        </div>
+        <div>
+          <label for="modalCouponCategory" class="block text-sm font-medium text-gray-400 mb-2">Category</label>
+          <select id="modalCouponCategory" name="couponCategory"
+            class="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 text-white focus:border-amber-500 focus:outline-none">
+            <option value="">All Categories</option>
+            {% for category in categories %}
+            <option value="{{ category._id }}">{{ category.name }}</option>
+            {% endfor %}
+          </select>
+          <p class="text-xs text-blue-400 mt-1" id="categoryHint">
+            <svg class="w-3 h-3 inline mr-1" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd"
+                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                clip-rule="evenodd"></path>
+            </svg>
+            Coupon will work for the selected category, not just this product
+          </p>
+        </div>
+      </div>
+      <div class="flex items-center">
+        <input type="checkbox" id="modalIsPublic" name="isPublic"
+          class="h-4 w-4 rounded border-gray-600 bg-gray-700 text-amber-600 focus:ring-amber-500">
+        <label for="modalIsPublic" class="ml-2 block text-sm text-gray-300">Display coupon publicly</label>
+      </div>
+      <div class="flex justify-end space-x-3 pt-4">
+        <button type="button" id="cancelCouponModal"
+          class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-500 transition-colors">Cancel</button>
+        <button type="submit"
+          class="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors">Create
+          Coupon</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Load Cropper.js library -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/rich-text-editor.css') }}">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
+  <script src="{{ url_for('static', filename='js/rich-text-editor.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/image-cropper.js') }}"></script>
+  
+  <script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const container = document.getElementById('pricing-options-container');
+    const addButton = document.getElementById('add-pricing-option');
+    const stockValuesField = document.getElementById('stockValues');
+    let optionCount = 0;
+    
+    // Rich text editor instance
+    let richTextEditor;
+    
+    // Initialize rich text editor
+    function initRichTextEditor() {
+      richTextEditor = new RichTextEditor({
+        editorId: 'richTextEditor',
+        hiddenInputId: 'productDescription',
+        toolbarClass: 'rich-text-btn'
+      });
+    }
+    
+    // Image Cropping Functionality
+    let imageCropper;
+    
+    function initImageCropping() {
+      imageCropper = new ImageCropper({
+        cropControlsId: 'imageCropControls',
+        cropPreviewId: 'cropPreview',
+        fileInputId: 'productImage',
+        isEdit: false
+      });
+    }
+    
+    // Enhanced image preview with cropping
+    function showImagePreview(file) {
+      if (imageCropper) {
+        imageCropper.showImagePreview(file);
+      }
+    }
+    
+         // Update form submission to ensure rich text content is included
+     document.getElementById('addProductForm').addEventListener('submit', function(e) {
+       // Ensure the hidden description input is updated before submission
+       if (richTextEditor) {
+         richTextEditor.updateHiddenInput();
+       }
+     });
+    
+    function showCropInterface(imageUrl, file) {
+      if (imageCropper) {
+        imageCropper.showCropInterface(imageUrl, file);
+      }
+    }
+    
+    // Stock calculation function
+    function calculateStock() {
+      const infiniteStock = document.getElementById('infiniteStock').checked;
+      const stockValues = document.getElementById('stockValues').value.trim();
+      const delimiter = document.getElementById('stockDelimiter').value;
+      const stockCount = document.getElementById('stockCount');
+      const stockValidation = document.getElementById('stockValidation');
+
+      // Handle infinite stock mode
+      if (infiniteStock) {
+        if (!stockValues) {
+          stockCount.textContent = '(Infinite: Need 1 value)';
+          stockValidation.textContent = 'Enter 1 value for infinite stock';
+          stockValidation.className = 'text-xs px-2 py-1 rounded-full bg-yellow-500/20 text-yellow-400';
+          stockValidation.classList.remove('hidden');
+          return 0;
+        } else {
+          stockCount.textContent = '(Stock: ∞)';
+          stockValidation.textContent = '∞ Infinite stock enabled';
+          stockValidation.className = 'text-xs px-2 py-1 rounded-full bg-purple-500/20 text-purple-400';
+          stockValidation.classList.remove('hidden');
+          return 999999; // Return high number for infinite
+        }
+      }
+
+      document.querySelectorAll('input[type="number"]')
+        .forEach(function (input) {
+          input.addEventListener('wheel', function (e) {
+            e.preventDefault();
+          }, { passive: false });
+        });
+
+      if (!stockValues) {
+        stockCount.textContent = '(Stock: 0)';
+        stockValidation.classList.add('hidden');
+        return 0;
+      }
+
+      let values = [];
+      if (delimiter === 'newline') {
+        values = stockValues.split('\n').filter(v => v.trim());
+      } else {
+        values = stockValues.split(delimiter).filter(v => v.trim());
+      }
+
+      // Remove duplicates to ensure unique values only
+      const uniqueValues = [...new Set(values)];
+      const count = uniqueValues.length;
+      const duplicateCount = values.length - uniqueValues.length;
+
+      stockCount.textContent = `(Stock: ${count})`;
+
+      // Show validation with duplicate warning if applicable
+      if (count > 0) {
+        if (duplicateCount > 0) {
+          stockValidation.textContent = `✓ ${count} unique items (${duplicateCount} duplicates removed)`;
+          stockValidation.className = 'text-xs px-2 py-1 rounded-full bg-orange-500/20 text-orange-400';
+        } else {
+          stockValidation.textContent = `✓ ${count} unique items`;
+          stockValidation.className = 'text-xs px-2 py-1 rounded-full bg-green-500/20 text-green-400';
+        }
+      } else {
+        stockValidation.textContent = 'Empty';
+        stockValidation.className = 'text-xs px-2 py-1 rounded-full bg-yellow-500/20 text-yellow-400';
+      }
+      stockValidation.classList.remove('hidden');
+
+      return count;
+    }
+
+    // Toggle infinite stock mode
+    function toggleInfiniteStock() {
+      const infiniteStock = document.getElementById('infiniteStock').checked;
+      const stockValuesLabel = document.getElementById('stockValuesLabel');
+      const stockValues = document.getElementById('stockValues');
+      const stockDescription = document.getElementById('stockDescription');
+      const howItWorksTitle = document.getElementById('howItWorksTitle');
+      const delimiterExample = document.getElementById('delimiterExample');
+      const delimiterSelect = document.getElementById('stockDelimiter');
+      const delimiterContainer = delimiterSelect.parentElement.parentElement;
+
+      if (infiniteStock) {
+        // Switch to infinite mode
+        stockValuesLabel.textContent = 'Product Value (Infinite Stock)';
+        stockValues.placeholder = 'Enter the single value that will be delivered to all customers.';
+        stockValues.rows = 2;
+        howItWorksTitle.textContent = 'Infinite Stock Mode:';
+        delimiterExample.textContent = 'https://discord.gg/your-group-link';
+        stockDescription.textContent = 'This single value will be delivered to unlimited customers. Perfect for group links, download URLs, or access codes that can be shared infinitely.';
+
+        // Blur and disable delimiter section
+        delimiterContainer.style.opacity = '0.4';
+        delimiterContainer.style.pointerEvents = 'none';
+        delimiterSelect.disabled = true;
+      } else {
+        // Switch to regular mode
+        stockValuesLabel.textContent = 'Stock Values';
+        stockValues.placeholder = 'Enter product stock values here...';
+        stockValues.rows = 4;
+        howItWorksTitle.textContent = 'How it works:';
+        updateDelimiterExample(); // Restore delimiter-based example
+        stockDescription.textContent = 'These values will be delivered to customers via email upon purchase. Stock count is automatically calculated from unique values.';
+
+        // Restore delimiter section
+        delimiterContainer.style.opacity = '1';
+        delimiterContainer.style.pointerEvents = 'auto';
+        delimiterSelect.disabled = false;
+      }
+
+      // Update existing pricing options for infinite stock mode
+      updatePricingOptionsForInfiniteStock(infiniteStock);
+
+      calculateStock();
+    }
+
+    // Update delimiter example
+    function updateDelimiterExample() {
+      const delimiter = document.getElementById('stockDelimiter').value;
+      const example = document.getElementById('delimiterExample');
+
+      if (delimiter === '|') {
+        example.textContent = 'ABCD1234 | user:pass | LICENSE123';
+      } else if (delimiter === ',') {
+        example.textContent = 'ABCD1234, user:pass, LICENSE123';
+      } else if (delimiter === 'newline') {
+        example.innerHTML = 'ABCD1234<br/>user:pass<br/>LICENSE123';
+      }
+
+      // Recalculate stock when delimiter changes
+      calculateStock();
+
+      // Also recalculate stock for all pricing options
+      const optionTextareas = container.querySelectorAll('textarea[name="duration_stock_values[]"]');
+      optionTextareas.forEach(textarea => {
+        calculateOptionStock(textarea);
+      });
+    }
+
+    // Update pricing options for infinite stock mode
+    function updatePricingOptionsForInfiniteStock(isInfinite) {
+      const options = container.querySelectorAll('.pricing-option');
+      options.forEach(option => {
+        const stockContainer = option.querySelector('.stock-container');
+        if (stockContainer) {
+          if (isInfinite) {
+            // Replace textarea with single input for infinite mode
+            stockContainer.innerHTML = `
+              <label class="block text-sm font-medium text-gray-400 mb-2">
+                Infinite Stock Value
+                <span class="text-purple-400 font-bold">(∞)</span>
+              </label>
+              <input type="text" name="duration_stock_values[]" 
+                     class="w-full px-3 py-2 rounded-lg bg-gray-700 border border-gray-600 text-white text-sm focus:border-purple-500 focus:outline-none resize-none"
+                     placeholder="Enter the value for infinite stock (e.g., Discord invite link)" />
+              <p class="text-xs text-gray-500 mt-1">This single value will be delivered to unlimited customers</p>
+            `;
+          } else {
+            // Restore textarea for limited stock mode
+            stockContainer.innerHTML = `
+              <label class="block text-sm font-medium text-gray-400 mb-2">
+                Stock Values for this Option 
+                <span class="option-stock-count text-blue-400 font-bold">(Stock: 0)</span>
+              </label>
+              <textarea name="duration_stock_values[]" rows="3" 
+                        class="w-full px-3 py-2 rounded-lg bg-gray-700 border border-gray-600 text-white text-sm focus:border-purple-500 focus:outline-none font-mono option-stock-values resize-none"
+                        placeholder="Enter values for this option..." 
+                        oninput="calculateOptionStock(this)"></textarea>
+              <p class="text-xs text-gray-500 mt-1">Use the same delimiter as selected above</p>
+            `;
+          }
+        }
+      });
+    }
+
+    // Make functions global for inline events
+    window.calculateStock = calculateStock;
+    window.updateDelimiterExample = updateDelimiterExample;
+    window.toggleInfiniteStock = toggleInfiniteStock;
+
+    // Add file upload preview functionality
+    const fileInput = document.getElementById('productImage');
+    const previewContainer = document.getElementById('imagePreviewContainer');
+
+    fileInput.addEventListener('change', function (event) {
+      const file = event.target.files[0];
+      if (file) {
+        // Reset crop interface when new image is selected
+        if (imageCropper) {
+          imageCropper.resetCropInterface();
+        }
+        showImagePreview(file);
+      }
+    });
+
+    // Add drag and drop support
+    const dropZone = document.querySelector('label[for="productImage"]');
+
+    dropZone.addEventListener('dragover', function (e) {
+      e.preventDefault();
+      dropZone.classList.add('border-blue-500');
+    });
+
+    dropZone.addEventListener('dragleave', function (e) {
+      e.preventDefault();
+      dropZone.classList.remove('border-blue-500');
+    });
+
+    dropZone.addEventListener('drop', function (e) {
+      e.preventDefault();
+      dropZone.classList.remove('border-blue-500');
+
+      const file = e.dataTransfer.files[0];
+      if (file) {
+        const validation = validateImageFile(file);
+
+        if (!validation.valid) {
+          previewContainer.innerHTML = `
+            <div class="w-full h-full flex flex-col items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 mb-3 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              <p class="text-sm text-red-400">${validation.message}</p>
+              <p class="text-xs text-gray-500">Please select a valid image file.</p>
+            </div>
+          `;
+          return;
+        }
+
+        fileInput.files = e.dataTransfer.files;
+        showImagePreview(file);
+      }
+    });
+
+
+
+
+
+    // Function to update main stock field status
+    function updateStockFieldStatus() {
+      const hasDurationOptions = container.querySelectorAll('.pricing-option').length > 0;
+      const defaultPriceContainer = document.getElementById('defaultPriceContainer');
+      const stockValuesSection = document.getElementById('stockValuesSection');
+      const priceField = document.getElementById('productPrice');
+      const stockValuesField = document.getElementById('stockValues');
+
+      if (hasDurationOptions) {
+        defaultPriceContainer.style.display = 'none';
+        stockValuesSection.style.display = 'none';
+        priceField.required = false;
+        priceField.disabled = true;
+        stockValuesField.disabled = true;
+      } else {
+        defaultPriceContainer.style.display = 'block';
+        stockValuesSection.style.display = 'block';
+        priceField.required = true;
+        priceField.disabled = false;
+        stockValuesField.disabled = false;
+      }
+    }
+
+    function addPricingOption() {
+      const infiniteStock = document.getElementById('infiniteStock').checked;
+      const optionDiv = document.createElement('div');
+      optionDiv.className = 'bg-gray-900/70 rounded-lg p-4 border border-gray-700 pricing-option';
+
+      // Create different layouts based on infinite stock mode
+      if (infiniteStock) {
+        optionDiv.innerHTML = `
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-400 mb-2">Option Name</label>
+              <input type="text" name="duration_name[]" placeholder="e.g. 1 Hour, 1 Day, 1 Week"
+                     class="w-full px-3 py-2 rounded-lg bg-gray-700 border border-gray-600 text-white text-sm focus:border-purple-500 focus:outline-none"
+                     required>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-400 mb-2">Price ($)</label>
+              <input type="number" step="0.01" name="duration_price[]" placeholder="0.00"
+                     class="w-full px-3 py-2 rounded-lg bg-gray-700 border border-gray-600 text-white text-sm focus:border-purple-500 focus:outline-none"
+                     required min="0.01">
+            </div>
+          </div>
+          <div class="mb-4 stock-container">
+            <label class="block text-sm font-medium text-gray-400 mb-2">
+              Infinite Stock Value
+              <span class="text-purple-400 font-bold">(∞)</span>
+            </label>
+            <input type="text" name="duration_stock_values[]" 
+                   class="w-full px-3 py-2 rounded-lg bg-gray-700 border border-gray-600 text-white text-sm focus:border-purple-500 focus:outline-none resize-none"
+                   placeholder="Enter the value for infinite stock (e.g., Discord invite link)" />
+            <p class="text-xs text-gray-500 mt-1">This single value will be delivered to unlimited customers</p>
+          </div>
+          <div class="flex justify-end">
+            <button type="button" class="remove-option text-red-400 hover:text-red-500 flex items-center text-sm">
+              <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+              </svg>
+              Remove Option
+            </button>
+          </div>
+        `;
+      } else {
+        optionDiv.innerHTML = `
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-400 mb-2">Option Name</label>
+              <input type="text" name="duration_name[]" placeholder="e.g. 1 Hour, 1 Day, 1 Week"
+                     class="w-full px-3 py-2 rounded-lg bg-gray-700 border border-gray-600 text-white text-sm focus:border-purple-500 focus:outline-none"
+                     required>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-400 mb-2">Price ($)</label>
+              <input type="number" step="0.01" name="duration_price[]" placeholder="0.00"
+                     class="w-full px-3 py-2 rounded-lg bg-gray-700 border border-gray-600 text-white text-sm focus:border-purple-500 focus:outline-none"
+                     required min="0.01">
+            </div>
+          </div>
+          <div class="mb-4 stock-container relative">
+            <label class="block w-full text-sm font-medium text-gray-400 mb-2 flex items-center space-x-3">
+              Stock Values for this Option 
+              <span class="option-stock-count text-blue-400 font-bold">(Stock: 0)</span>
+              <span class="option-stock-validation text-xs px-2 py-1 rounded-full hidden"></span>
+            </label>
+            <textarea name="duration_stock_values[]" rows="3" 
+                      class="w-full px-3 py-2 rounded-lg bg-gray-700 border border-gray-600 text-white text-sm focus:border-purple-500 focus:outline-none font-mono option-stock-values resize-none"
+                      placeholder="Enter values for this option..." 
+                      oninput="calculateOptionStock(this)"></textarea>
+            <div class="absolute top-0 right-0 mt-2 mr-2">
+            </div>
+            <p class="text-xs text-gray-500 mt-1">Use the same delimiter as selected above</p>
+          </div>
+          <div class="flex justify-end">
+            <button type="button" class="remove-option text-red-400 hover:text-red-500 flex items-center text-sm">
+              <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+              </svg>
+              Remove Option
+            </button>
+          </div>
+        `;
+      }
+
+      container.appendChild(optionDiv);
+
+      // Add event listener for the remove button
+      optionDiv.querySelector('.remove-option').addEventListener('click', function () {
+        container.removeChild(optionDiv);
+        updateStockFieldStatus();
+      });
+
+      optionCount++;
+      updateStockFieldStatus();
+    }
+
+    // Function to calculate stock for individual options
+    function calculateOptionStock(textarea) {
+      const stockValues = textarea.value.trim();
+      const delimiter = document.getElementById('stockDelimiter').value;
+      const stockCountSpan = textarea.parentElement.querySelector('.option-stock-count');
+      const stockValidationSpan = textarea.parentElement.querySelector('.option-stock-validation');
+
+      if (!stockValues) {
+        stockCountSpan.textContent = '(Stock: 0)';
+        stockValidationSpan.classList.add('hidden');
+        return 0;
+      }
+
+      let values = [];
+      if (delimiter === 'newline') {
+        values = stockValues.split('\n').filter(v => v.trim());
+      } else {
+        values = stockValues.split(delimiter).filter(v => v.trim());
+      }
+
+      const uniqueValues = [...new Set(values)];
+      const count = uniqueValues.length;
+      const duplicateCount = values.length - uniqueValues.length;
+
+      stockCountSpan.textContent = `(Stock: ${count})`;
+
+      if (count > 0) {
+        if (duplicateCount > 0) {
+          stockValidationSpan.textContent = `✓ ${count} unique items (${duplicateCount} duplicates removed)`;
+          stockValidationSpan.className = 'option-stock-validation text-xs px-2 py-1 rounded-full bg-orange-500/20 text-orange-400';
+        } else {
+          stockValidationSpan.textContent = `✓ ${count} unique items`;
+          stockValidationSpan.className = 'option-stock-validation text-xs px-2 py-1 rounded-full bg-green-500/20 text-green-400';
+        }
+      } else {
+        stockValidationSpan.textContent = 'Empty';
+        stockValidationSpan.className = 'option-stock-validation text-xs px-2 py-1 rounded-full bg-yellow-500/20 text-yellow-400';
+      }
+      stockValidationSpan.classList.remove('hidden');
+
+      return count;
+    }
+
+    // Make calculateOptionStock global for inline events
+    window.calculateOptionStock = calculateOptionStock;
+
+    addButton.addEventListener('click', addPricingOption);
+
+    // Initial status check
+    updateStockFieldStatus();
+
+    // Initialize rich text editor and image cropping
+    initRichTextEditor();
+    initImageCropping();
+    
+    // Debug: Check if Cropper.js is loaded
+    console.log('Cropper.js loaded:', typeof Cropper !== 'undefined');
+    console.log('Rich text editor initialized');
+    console.log('Image cropping initialized');
+    
+    // Initial calculation
+    calculateStock();
+
+    // --- MODAL HANDLING ---
+
+    // Enhanced Modal Toggle Function with Focus Mode
+    function toggleModal(modalId, show) {
+      const modal = document.getElementById(modalId);
+      if (!modal) return;
+
+      const modalContent = modal.querySelector('.focus-modal-highlight');
+
+      if (show) {
+        modal.classList.remove('hidden');
+        // Use requestAnimationFrame to ensure the 'hidden' class is removed before starting the transition
+        requestAnimationFrame(() => {
+          modal.classList.add('modal-show');
+          if (modalContent) {
+            modalContent.classList.remove('scale-95');
+            // Auto-focus the first input
+            setTimeout(() => {
+              const firstInput = modalContent.querySelector('input, select');
+              if (firstInput) firstInput.focus();
+            }, 300);
+          }
+        });
+      } else {
+        modal.classList.remove('modal-show');
+        if (modalContent) modalContent.classList.add('scale-95');
+        setTimeout(() => modal.classList.add('hidden'), 300); // Wait for transition to finish
+      }
+    }
+
+    // Category Modal
+    const categoryModal = document.getElementById('categoryModal');
+    document.getElementById('quickCreateCategoryBtn').addEventListener('click', () => toggleModal('categoryModal', true));
+    document.getElementById('closeCategoryModal').addEventListener('click', () => toggleModal('categoryModal', false));
+    document.getElementById('cancelCategoryModal').addEventListener('click', () => toggleModal('categoryModal', false));
+
+    // Coupon Modal
+    const couponModal = document.getElementById('couponModal');
+    document.getElementById('quickCreateCouponBtn').addEventListener('click', () => {
+      // Auto-select the product's category as default, but user can change it
+      const productCategory = document.getElementById('productCategory').value;
+      const modalCouponCategory = document.getElementById('modalCouponCategory');
+
+      if (productCategory) {
+        modalCouponCategory.value = productCategory;
+      } else {
+        modalCouponCategory.value = '';
+      }
+
+      // Set initial hint based on current selection
+      updateCouponCategoryHint();
+
+      toggleModal('couponModal', true);
+    });
+
+    // Function to update coupon category hint based on current selection
+    function updateCouponCategoryHint() {
+      const modalCouponCategory = document.getElementById('modalCouponCategory');
+      const selectedValue = modalCouponCategory.value;
+      const categoryHint = document.getElementById('categoryHint');
+
+      if (selectedValue) {
+        const categoryText = modalCouponCategory.selectedOptions[0]?.text || 'selected category';
+        categoryHint.innerHTML = `
+                <svg class="w-3 h-3 inline mr-1 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                </svg>
+                Coupon will work for ALL products in "${categoryText}" category
+            `;
+        categoryHint.className = 'text-xs text-green-400 mt-1';
+      } else {
+        categoryHint.innerHTML = `
+                <svg class="w-3 h-3 inline mr-1" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                </svg>
+                Coupon will work for ALL products in ALL categories
+            `;
+        categoryHint.className = 'text-xs text-blue-400 mt-1';
+      }
+    }
+
+    // Add event listener to update hint when category selection changes
+    document.getElementById('modalCouponCategory').addEventListener('change', updateCouponCategoryHint);
+    document.getElementById('closeCouponModal').addEventListener('click', () => toggleModal('couponModal', false));
+    document.getElementById('cancelCouponModal').addEventListener('click', () => toggleModal('couponModal', false));
+
+    // Close modals on escape key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        toggleModal('categoryModal', false);
+        toggleModal('couponModal', false);
+      }
+    });
+
+    // Handle conditional field in coupon modal
+    const modalCouponType = document.getElementById('modalCouponType');
+    const modalConditionalLabel = document.getElementById('modalConditionalLabel');
+    const modalConditionalDescription = document.getElementById('modalConditionalDescription');
+    const modalConditionalValue = document.getElementById('modalConditionalValue');
+
+    function updateModalConditionalField() {
+      if (modalCouponType.value === 'percentage') {
+        modalConditionalLabel.textContent = 'Max Cap (optional)';
+        modalConditionalDescription.textContent = 'Maximum amount that can be discounted';
+        modalConditionalValue.setAttribute('placeholder', '50.00');
+      } else {
+        modalConditionalLabel.textContent = 'Min Order Value (optional)';
+        modalConditionalDescription.textContent = 'Minimum cart value required to apply this coupon';
+        modalConditionalValue.setAttribute('placeholder', '25.00');
+      }
+    }
+
+    modalCouponType.addEventListener('change', updateModalConditionalField);
+    // Initial check
+    updateModalConditionalField();
+
+    // Set min date for expiry date field
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('modalExpiryDate').setAttribute('min', today);
+
+    // --- AJAX FORM SUBMISSIONS ---
+
+    // Category Form
+    document.getElementById('createCategoryForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      const btn = this.querySelector('button[type="submit"]');
+      const originalText = btn.innerHTML;
+      btn.innerHTML = 'Creating...';
+      btn.disabled = true;
+
+      const formData = new FormData(this);
+      const response = await fetch('/categories/add?ajax=true', {
+        method: 'POST',
+        body: new URLSearchParams({
+          categoryName: formData.get('categoryName'),
+          categoryDescription: formData.get('categoryDescription')
+        })
+      });
+      const result = await response.json();
+
+      if (result.success) {
+        // Add new category to both dropdowns
+        const newOption = `<option value="${result.category.id}" selected>${result.category.name}</option>`;
+        document.getElementById('productCategory').insertAdjacentHTML('beforeend', newOption);
+        document.getElementById('modalCouponCategory').insertAdjacentHTML('beforeend', newOption.replace(' selected', ''));
+
+        btn.innerHTML = '✓ Created!';
+        setTimeout(() => {
+          toggleModal('categoryModal', false);
+          btn.innerHTML = originalText;
+          btn.disabled = false;
+          this.reset();
+        }, 1000);
+      } else {
+        alert(`Error: ${result.message}`);
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+      }
+    });
+
+    // Coupon Form
+    document.getElementById('createCouponForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      const btn = this.querySelector('button[type="submit"]');
+      const originalText = btn.innerHTML;
+      btn.innerHTML = 'Creating...';
+      btn.disabled = true;
+
+      const formData = new FormData(this);
+      const response = await fetch('/coupons/add?ajax=true', {
+        method: 'POST',
+        body: formData
+      });
+      const result = await response.json();
+
+      if (result.success) {
+        // Get category info for success message from the modal selection
+        const selectedCategory = document.getElementById('modalCouponCategory');
+        const categoryText = selectedCategory.value ? selectedCategory.selectedOptions[0]?.text : 'All Categories';
+
+        btn.innerHTML = '✓ Created!';
+
+        // Show success notification with category info
+        const notification = document.createElement('div');
+        notification.className = 'fixed top-4 right-4 bg-green-500/20 text-green-400 px-6 py-3 rounded-lg border border-green-500/30 z-50 animate-pulse';
+        notification.innerHTML = `
+                <div class="flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                    </svg>
+                    <div>
+                        <div class="font-medium">Coupon Created Successfully!</div>
+                        <div class="text-sm opacity-80">Applied to: ${categoryText}</div>
+                    </div>
+                </div>
+            `;
+        document.body.appendChild(notification);
+
+        // Remove notification after 4 seconds
+        setTimeout(() => {
+          notification.style.animation = 'none';
+          notification.style.opacity = '0';
+          setTimeout(() => notification.remove(), 300);
+        }, 4000);
+
+        setTimeout(() => {
+          toggleModal('couponModal', false);
+          btn.innerHTML = originalText;
+          btn.disabled = false;
+          this.reset();
+          // Reset category hint
+          document.getElementById('categoryHint').innerHTML = `
+                     <svg class="w-3 h-3 inline mr-1" fill="currentColor" viewBox="0 0 20 20">
+                         <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                     </svg>
+                     Coupon will work for the selected category, not just this product
+                 `;
+          document.getElementById('categoryHint').className = 'text-xs text-blue-400 mt-1';
+        }, 1000);
+      } else {
+        alert(`Error: ${result.message}`);
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+      }
+    });
+
+  });
+</script>
+
+<style>
+  /* Focus Mode Styles */
+  .focus-modal-highlight {
+    transform: scale(1.02);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3), 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    border-color: rgba(59, 130, 246, 0.5) !important;
+    z-index: 60;
+  }
+
+  .focus-modal-highlight::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    background: linear-gradient(45deg, rgba(59, 130, 246, 0.2), rgba(147, 51, 234, 0.2));
+    border-radius: inherit;
+    z-index: -1;
+    animation: focusGlow 2s ease-in-out infinite alternate;
+  }
+
+  @keyframes focusGlow {
+    from {
+      box-shadow: 0 0 20px rgba(59, 130, 246, 0.4);
+    }
+
+    to {
+      box-shadow: 0 0 40px rgba(147, 51, 234, 0.6);
+    }
+  }
+
+  /* Modal entrance animations */
+  .modal-show {
+    opacity: 1 !important;
+  }
+
+  .modal-show .focus-modal-highlight {
+    transform: scale(1.02) !important;
+  }
+
+  /* Cropper.js Custom Styles */
+  .cropper-container {
+    background-color: #1f2937;
+  }
+  
+  .cropper-view-box,
+  .cropper-face {
+    border-radius: 0;
+  }
+  
+  .cropper-line,
+  .cropper-point {
+    background-color: #3b82f6;
+  }
+  
+  .cropper-view-box {
+    outline: 2px solid #3b82f6;
+  }
+</style>
+{% endblock %}

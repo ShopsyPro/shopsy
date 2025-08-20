@@ -1,0 +1,323 @@
+{% extends "_base/base.html" %}
+
+{% block title %}My Shop Overview | ShopsyPro{% endblock %}
+
+{% block content %}
+<section class="min-h-screen p-4 sm:p-6 md:p-8 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+    <div class="max-w-screen-xl mx-auto">
+        <div class="mb-8">
+            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                <div class="space-y-2">
+                    <h1 class="text-3xl font-bold text-slate-100">{{ shop_name }} - Shop Preview</h1>
+                    <p class="text-slate-400">This is how your active products appear to customers. Manage them on the <a href="{{url_for('products.products')}}" class="text-blue-400 hover:underline">Products</a> page.</p>
+                    <div class="flex items-center space-x-2 pt-1">
+                        <span class="text-sm text-slate-500">Your Public Shop URL:</span>
+                        <a href="{{ shop_url }}" 
+                           class="inline-flex items-center px-3 py-1 bg-slate-700/50 text-blue-400 text-sm rounded-md hover:bg-slate-700 transition-all duration-200 border border-slate-600"
+                           target="_blank">
+                            {{ shop_url }}
+                            <svg class="w-3.5 h-3.5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+                <div class="relative w-full lg:w-72">
+                    <div class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    </div>
+                    <input type="text" id="searchShopProducts" placeholder="Search your products..." class="w-full pl-11 pr-4 py-3 rounded-lg bg-slate-800 border border-slate-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition placeholder-slate-500">
+                </div>
+            </div>
+        </div>
+
+        <div class="mb-8 p-4 bg-slate-800/50 rounded-xl border border-slate-700">
+            <div class="flex flex-wrap gap-2">
+                <a href="{{ url_for('shop.myshop') }}" class="px-4 py-2 text-sm font-medium rounded-md transition {% if not selected_category %}bg-slate-700 text-white{% else %}text-slate-400 hover:bg-slate-700/50 hover:text-slate-200{% endif %}">
+                    All Products
+                </a>
+                {% for category_item in categories %}
+                    <a href="{{ url_for('shop.myshop', category=category_item._id) }}" class="px-4 py-2 text-sm font-medium rounded-md transition {% if selected_category and selected_category == category_item._id|string %}bg-slate-700 text-white{% else %}text-slate-400 hover:bg-slate-700/50 hover:text-slate-200{% endif %}">
+                        {{ category_item.name }}
+                    </a>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6" id="product-grid-myshop">
+            {% if products %}
+                {% for product in products %}
+                <div class="shop-product-card bg-slate-800/80 rounded-xl overflow-hidden flex flex-col group border border-slate-700 hover:border-blue-500/50 transition-all duration-300 transform hover:-translate-y-1">
+                    <div class="relative h-40 w-full overflow-hidden">
+                        <button onclick="openProductModal('{{ username }}', '{{ product._id }}')" class="w-full h-full">
+                            {% if product.image_url %}
+                                <img src="{{ product.image_url }}" alt="{{ product.name }}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
+                            {% else %}
+                                <div class="w-full h-full bg-slate-800 flex items-center justify-center"><svg class="w-12 h-12 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg></div>
+                            {% endif %}
+                        </button>
+                        
+                        {% if product.category_name and product.category_name != 'ALL' %}
+                            <span class="absolute top-2 left-2 px-2 py-1 text-xs font-semibold rounded-full bg-slate-900/70 text-blue-300 backdrop-blur-sm border border-slate-700">{{ product.category_name }}</span>
+                        {% endif %}
+                        
+                        <span class="absolute top-2 right-2 px-2 py-1 text-xs font-semibold rounded-full backdrop-blur-sm border
+                            {% if product.has_duration_pricing %}{% if product.available_duration_options == 0 %} bg-red-600/50 text-red-200 border-red-500/50 {% else %} bg-green-600/50 text-green-200 border-green-500/50 {% endif %}
+                            {% else %}{% if product.infinite_stock %} bg-purple-600/50 text-purple-200 border-purple-500/50
+                            {% elif product.stock == 0 %} bg-red-600/50 text-red-200 border-red-500/50
+                            {% elif product.stock < 10 %} bg-yellow-600/50 text-yellow-200 border-yellow-500/50
+                            {% else %} bg-green-600/50 text-green-200 border-green-500/50 {% endif %}{% endif %}">
+                            {% if product.has_duration_pricing %}{{ product.available_duration_options }} Option{{ 's' if product.available_duration_options != 1 else '' }}
+                            {% else %}{% if product.infinite_stock %}Unlimited{% elif product.stock > 0 %}{{ product.stock }} in stock{% else %}Out of Stock{% endif %}{% endif %}
+                        </span>
+                    </div>
+                    
+                    <div class="p-4 flex flex-col flex-grow">
+                        <h3 class="text-base font-semibold text-slate-100 mb-2 product-name group-hover:text-blue-400 transition-colors line-clamp-2">
+                            <button onclick="openProductModal('{{ username }}', '{{ product._id }}')" class="text-left">{{ product.name }}</button>
+                        </h3>
+                        <p class="text-slate-400 text-xs mb-3 flex-grow product-description line-clamp-2">{{ product.description | truncate(60, True) or 'No description available.' }}</p>
+                        
+                        <div class="mt-auto pt-3 border-t border-slate-700/50">
+                             {% if product.has_duration_pricing and product.pricing_options %}
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xs font-medium text-slate-400">From</span>
+                                    <span class="text-lg font-bold text-slate-50">${{ "%.2f"|format(product.pricing_options[0].price) }}</span>
+                                </div>
+                             {% else %}
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xs font-medium text-slate-400">Price</span>
+                                    <span class="text-lg font-bold text-slate-50">${{ "%.2f"|format(product.price) }}</span>
+                                </div>
+                             {% endif %}
+                            
+                             <div class="mt-3">
+                                <button onclick="openProductModal('{{ username }}', '{{ product._id }}')" class="w-full flex items-center justify-center px-3 py-2 bg-slate-700/70 text-white text-sm font-semibold rounded-lg hover:bg-blue-600 transition">View Details</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% endif %}
+        </div>
+
+        <div id="no-products-myshop" class="bg-slate-800/50 rounded-xl border border-slate-700 p-12 text-center mt-8" {% if products %}style="display: none;"{% endif %}>
+            <h3 class="text-xl font-bold text-white mb-2">No Products to Display</h3>
+            <p class="text-slate-400 max-w-md mx-auto mb-6 text-sm">
+                {% if selected_category %}There are no active products in this category.
+                {% else %}Your shop preview is empty! Add products to see them here.{% endif %}
+            </p>
+            <a href="{{ url_for('products.add_product_page') }}" class="inline-flex items-center px-5 py-2.5 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition">Add New Product</a>
+        </div>
+    </div>
+</section>
+
+<div id="productModal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 transition-opacity duration-300">
+    <div class="bg-slate-900 text-slate-200 rounded-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto border border-slate-700 shadow-2xl">
+        <div class="p-8">
+            <div class="flex justify-between items-start mb-6">
+                <h2 id="modalTitle" class="text-2xl font-bold text-slate-100">Product Details</h2>
+                <button id="closeModal" class="text-slate-500 hover:text-white transition p-1"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="bg-slate-800 rounded-lg flex items-center justify-center aspect-square">
+                    <img id="modalImage" src="" alt="" class="max-w-full max-h-full object-contain rounded-md"><div id="modalImagePlaceholder" class="hidden"></div>
+                </div>
+                <div class="flex flex-col">
+                    <h1 id="modalProductName" class="text-3xl font-bold text-white mb-2"></h1>
+                    <div class="flex items-center gap-3 mb-4">
+                        <span id="modalCategory" class="text-sm font-medium bg-blue-600/20 text-blue-300 px-3 py-1 rounded-full"></span>
+                        <span id="modalStockStatus" class="text-sm font-medium px-3 py-1 rounded-full"></span>
+                    </div>
+                    <div class="bg-slate-800 rounded-lg p-4 my-4">
+                        <div id="modalPriceContainer" class="text-3xl font-bold text-green-400"></div>
+                        <div id="modalDurationSelector" class="hidden mt-2">
+                             <select id="modalDurationSelect" class="w-full bg-slate-700 border border-slate-600 rounded-lg p-2 text-white"></select>
+                        </div>
+                        <p id="modalStockDisplay" class="text-sm text-slate-400 mt-1"></p>
+                    </div>
+                    <div id="modalDescription" class="text-slate-300 prose prose-sm prose-invert max-w-none"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Search functionality
+    const searchInput = document.getElementById('searchShopProducts');
+    const productGrid = document.getElementById('product-grid-myshop');
+    const productCards = Array.from(productGrid.querySelectorAll('.shop-product-card'));
+    const noProductsMessage = document.getElementById('no-products-myshop');
+    const originalNoProductsHTML = noProductsMessage ? noProductsMessage.innerHTML : '';
+
+    if (searchInput && productGrid && noProductsMessage) {
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase().trim();
+            let visibleProductsCount = 0;
+            productCards.forEach(card => {
+                const productName = card.querySelector('.product-name').textContent.toLowerCase();
+                if (productName.includes(searchTerm)) {
+                    card.style.display = '';
+                    visibleProductsCount++;
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+            if (visibleProductsCount === 0) {
+                if (searchTerm) {
+                    noProductsMessage.innerHTML = `<h3 class="text-xl font-bold text-white mb-2">No products match "${searchTerm}"</h3><p class="text-slate-400">Try a different search term.</p>`;
+                } else {
+                    noProductsMessage.innerHTML = originalNoProductsHTML;
+                }
+                noProductsMessage.style.display = 'block';
+            } else {
+                noProductsMessage.style.display = 'none';
+            }
+        });
+    }
+
+    // Product Detail Modal (View Only)
+    const modal = document.getElementById('productModal');
+    if (!modal) return;
+
+    const closeModal = document.getElementById('closeModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalImage = document.getElementById('modalImage');
+    const modalImagePlaceholder = document.getElementById('modalImagePlaceholder');
+    const modalProductName = document.getElementById('modalProductName');
+    const modalCategory = document.getElementById('modalCategory');
+    const modalStockStatus = document.getElementById('modalStockStatus');
+    const modalPriceContainer = document.getElementById('modalPriceContainer');
+    const modalDurationSelector = document.getElementById('modalDurationSelector');
+    const modalDurationSelect = document.getElementById('modalDurationSelect');
+    const modalStockDisplay = document.getElementById('modalStockDisplay');
+    const modalDescription = document.getElementById('modalDescription');
+
+    closeModal.addEventListener('click', () => modal.classList.add('hidden'));
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) modal.classList.add('hidden');
+    });
+    
+    // Fallback function in case openProductModal is not defined
+    if (typeof window.openProductModal === 'undefined') {
+        window.openProductModal = function(username, productId) {
+            console.error('openProductModal function not properly loaded');
+            alert('Product modal failed to load. Please refresh the page.');
+        };
+    }
+
+    // Ensure openProductModal is available globally
+    window.openProductModal = function(username, productId) {
+        try {
+            modal.classList.remove('hidden');
+            modalTitle.textContent = 'Loading...';
+            
+            fetch(`/api/product/${username}/${productId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        populateModal(data.product, data.shop_name);
+                    } else {
+                        showError('Failed to load product details');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching product details:', error);
+                    showError('Failed to load product details');
+                });
+        } catch (error) {
+            console.error('Error in openProductModal:', error);
+            showError('Failed to open product modal');
+        }
+    };
+
+    function populateModal(product, shopName) {
+        modalTitle.textContent = product.name;
+        modalProductName.textContent = product.name;
+        modalCategory.textContent = product.category_name;
+        
+        if (product.image_url) {
+            modalImage.src = product.image_url;
+            modalImage.alt = product.name;
+            modalImage.classList.remove('hidden');
+            modalImagePlaceholder.classList.add('hidden');
+        } else {
+            modalImage.classList.add('hidden');
+            modalImagePlaceholder.classList.remove('hidden');
+        }
+        
+        if (product.description) {
+            modalDescription.innerHTML = `<h3 class="text-lg font-semibold mb-2 text-white">Description</h3><p class="text-slate-300">${product.description}</p>`;
+        } else {
+            modalDescription.innerHTML = '<p class="text-slate-500 italic">No description available.</p>';
+        }
+        
+        if (product.has_duration_pricing && product.pricing_options && product.pricing_options.length > 0) {
+            modalDurationSelector.classList.remove('hidden');
+            populateDurationOptions(product.pricing_options);
+            updateDurationPricing();
+        } else {
+            modalDurationSelector.classList.add('hidden');
+            modalPriceContainer.textContent = `$${parseFloat(product.price).toFixed(2)}`;
+            if (product.infinite_stock) {
+                modalStockDisplay.textContent = 'Unlimited Stock';
+                updateStockStatus('unlimited');
+            } else {
+                modalStockDisplay.textContent = `${product.stock} units available`;
+                updateStockStatus(product.stock);
+            }
+        }
+    }
+
+    function populateDurationOptions(options) {
+        modalDurationSelect.innerHTML = '';
+        options.forEach((option, index) => {
+            const optionElement = document.createElement('option');
+            optionElement.value = index;
+            optionElement.textContent = `${option.name} - $${parseFloat(option.price).toFixed(2)}`;
+            optionElement.dataset.price = option.price;
+            optionElement.dataset.stock = option.stock || 0;
+            modalDurationSelect.appendChild(optionElement);
+        });
+    }
+
+    function updateDurationPricing() {
+        const selectedOption = modalDurationSelect.options[modalDurationSelect.selectedIndex];
+        if (selectedOption) {
+            const price = parseFloat(selectedOption.dataset.price);
+            const stock = parseInt(selectedOption.dataset.stock);
+            
+            modalPriceContainer.textContent = `$${price.toFixed(2)}`;
+            modalStockDisplay.textContent = `${stock} units available`;
+            updateStockStatus(stock);
+        }
+    }
+
+    function updateStockStatus(stock) {
+        const classes = 'text-sm font-medium px-3 py-1 rounded-full ';
+        if (stock === 'unlimited') {
+            modalStockStatus.textContent = 'Unlimited';
+            modalStockStatus.className = classes + 'bg-purple-600/20 text-purple-300';
+        } else if (stock <= 0) {
+            modalStockStatus.textContent = 'Out of Stock';
+            modalStockStatus.className = classes + 'bg-red-600/20 text-red-300';
+        } else if (stock < 10) {
+            modalStockStatus.textContent = `${stock} left`;
+            modalStockStatus.className = classes + 'bg-yellow-600/20 text-yellow-300';
+        } else {
+            modalStockStatus.textContent = 'In Stock';
+            modalStockStatus.className = classes + 'bg-green-600/20 text-green-300';
+        }
+    }
+
+    function showError(message) {
+        modalTitle.textContent = 'Error';
+        modalProductName.textContent = message;
+    }
+
+    modalDurationSelect.addEventListener('change', updateDurationPricing);
+});
+</script>
+{% endblock %}

@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice #{{ order_id }} - {{ shop_name }} | ShopsyPro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Basic responsive styles for email clients that support them */
+        @media screen and (max-width: 600px) {
+            .content-cell {
+                padding: 20px !important;
+            }
+            .header-cell {
+                padding: 30px 20px !important;
+            }
+            .invoice-header-table, .total-table {
+                width: 100% !important;
+            }
+        }
+    </style>
+</head>
+<body style="margin: 0; padding: 0; background-color: #0f172a; font-family: 'Inter', Arial, sans-serif;">
+    <table width="100%" border="0" cellpadding="0" cellspacing="0" style="background-color: #0f172a;">
+        <tr>
+            <td align="center">
+                <table class="email-container" width="650" border="0" cellpadding="0" cellspacing="0" style="width: 100%; max-width: 650px; margin: 20px auto; background-color: #1e293b; border-radius: 12px; overflow: hidden; border: 1px solid #334155;">
+                    
+                    <tr>
+                        <td class="header-cell" align="center" style="background-color: #111827; color: #f1f5f9; padding: 40px 30px; border-bottom: 1px solid #334155;">
+                            <p style="font-size: 24px; font-weight: 700; margin: 0 0 4px 0;">Shopsy<span style="color: #3b82f6;">.</span>Pro</p>
+                            <h1 style="font-size: 32px; font-weight: 800; margin: 0; letter-spacing: -1px;">INVOICE</h1>
+                            <p style="font-size: 16px; opacity: 0.8; margin: 8px 0 0 0;">Thank you for your purchase</p>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td class="content-cell" style="padding: 40px 30px;">
+                            <table class="invoice-header-table" width="100%" border="0" cellpadding="0" cellspacing="0" style="margin-bottom: 32px; padding-bottom: 24px; border-bottom: 1px solid #334155;">
+                                <tr>
+                                    <td valign="top" style="color: #cbd5e1;">
+                                        <h3 style="margin: 0 0 8px 0; font-size: 20px; color: #f1f5f9;">{{ shop_name }}</h3>
+                                        <p style="margin: 0; font-size: 14px;">Powered by ShopsyPro</p>
+                                    </td>
+                                    <td valign="top" align="right" style="font-size: 14px; color: #94a3b8;">
+                                        <p style="font-size: 16px; font-weight: 700; color: #3b82f6; margin: 0 0 8px 0;">#{{ order_id }}</p>
+                                        <p style="margin: 0;">{{ invoice_date }}</p>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <div style="background-color: #334155; padding: 24px; border-radius: 8px; margin-bottom: 32px; border-left: 4px solid #3b82f6;">
+                                <h4 style="margin: 0 0 12px 0; color: #f1f5f9; font-size: 16px; font-weight: 600;">Digital Delivery Confirmation</h4>
+                                {% if customer_email %}
+                                <p style="margin: 0; color: #cbd5e1; font-size: 14px;">This invoice confirms delivery of your products to: <strong style="color: #f1f5f9;">{{ customer_email }}</strong></p>
+                                {% endif %}
+                            </div>
+
+                            <table width="100%" border="0" cellpadding="0" cellspacing="0" style="margin-bottom: 32px;">
+                                <thead>
+                                    <tr>
+                                        <th style="background-color: #334155; padding: 12px 16px; text-align: left; font-weight: 600; color: #94a3b8; font-size: 12px; border-radius: 6px 0 0 6px;">ITEM</th>
+                                        <th style="background-color: #334155; padding: 12px 16px; text-align: center; font-weight: 600; color: #94a3b8; font-size: 12px;">QTY</th>
+                                        <th style="background-color: #334155; padding: 12px 16px; text-align: right; font-weight: 600; color: #94a3b8; font-size: 12px; border-radius: 0 6px 6px 0;">TOTAL</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item in order_items %}
+                                    <tr>
+                                        <td style="padding: 16px; border-bottom: 1px solid #334155;">
+                                            <p style="font-weight: 600; color: #f1f5f9; margin: 0;">{{ item.get('name', 'Digital Product') }}</p>
+                                            {% if item.get('duration') %}<p style="color: #94a3b8; font-size: 14px; margin: 4px 0 0 0;">Duration: {{ item.get('duration') }}</p>{% endif %}
+                                        </td>
+                                        <td style="padding: 16px; text-align: center; border-bottom: 1px solid #334155;">{{ item.get('quantity', 1) }}</td>
+                                        <td style="padding: 16px; text-align: right; border-bottom: 1px solid #334155;">${{ "%.2f"|format(item.get('subtotal', 0)) }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                            
+                            <table width="100%" border="0" cellpadding="0" cellspacing="0" style="margin-bottom: 32px;">
+                                <tr>
+                                    <td align="right">
+                                        <table class="total-table" border="0" cellpadding="0" cellspacing="0" style="width: 100%; max-width: 300px;">
+                                            <tr><td style="padding: 8px 0; color: #94a3b8;">Subtotal:</td><td align="right" style="padding: 8px 0; color: #f1f5f9;">${{ "%.2f"|format(order_total) }}</td></tr>
+                                            {% if discount_amount > 0 %}
+                                            <tr><td style="padding: 8px 0; color: #94a3b8;">Discount:</td><td align="right" style="padding: 8px 0; color: #4ade80;">-${{ "%.2f"|format(discount_amount) }}</td></tr>
+                                            {% endif %}
+                                            <tr><td colspan="2" style="padding-top: 12px; border-top: 1px solid #334155;"></td></tr>
+                                            <tr><td style="padding: 8px 0; font-weight: 700; color: #f1f5f9; font-size: 18px;">Total Paid:</td><td align="right" style="padding: 8px 0; font-weight: 700; color: #f1f5f9; font-size: 18px;">${{ "%.2f"|format(final_amount) }}</td></tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <div style="text-align: center; padding: 20px; background-color: #10b981; border-radius: 8px; margin-bottom: 32px;">
+                                <p style="font-size: 18px; font-weight: 600; color: white; margin: 0;">Payment Completed & Products Delivered</p>
+                            </div>
+
+                            {% if sent_stock and sent_stock|length > 0 %}
+                            <div style="background-color: #334155; border-radius: 8px; padding: 24px;">
+                                <h4 style="margin: 0 0 16px 0; color: #f1f5f9; font-size: 18px; font-weight: 700;">Your Digital Products</h4>
+                                {% for item in sent_stock %}
+                                <div style="background-color: #1e293b; border: 1px solid #475569; border-radius: 6px; padding: 16px; margin-bottom: 12px;">
+                                    <p style="font-weight: 600; color: #cbd5e1; margin: 0 0 8px 0;">{{ item.get('product_name', 'Digital Product') }}</p>
+                                    <div style="background-color: #0f172a; color: #a78bfa; padding: 12px; border-radius: 4px; font-family: monospace; font-size: 13px; word-break: break-all;">{{ item.get('stock_item', 'N/A') }}</div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    
+                    <tr>
+                        <td style="text-align: center; padding: 30px; border-top: 1px solid #334155;">
+                            <p style="color: #f1f5f9; font-weight: 700; font-size: 16px; margin: 0 0 8px 0;">Shopsy<span style="color: #3b82f6;">.</span>Pro</p>
+                            <p style="color: #94a3b8; font-size: 13px; line-height: 1.5; margin: 0;">
+                                This invoice was generated by {{ shop_name }} via ShopsyPro.<br>
+                                &copy; {{ now.year }} - All Rights Reserved
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
