@@ -1,0 +1,23 @@
+blinker==1.9.0
+click==8.1.8
+Flask==3.1.1
+Werkzeug==3.1.3
+importlib_metadata==8.7.0
+itsdangerous==2.2.0
+Jinja2==3.1.6
+MarkupSafe==3.0.2
+Werkzeug==3.1.3
+zipp==3.21.0
+pymongo
+python-dotenv==1.0.0
+dnspython==2.4.2
+gunicorn
+boto3
+reportlab
+# Email validation
+email-validator==2.1.0
+# Bitcoin and crypto dependencies
+bit==0.8.0
+requests==2.31.0
+pycoingecko==3.2.0
+blockcypher==1.0.93
